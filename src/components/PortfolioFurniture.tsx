@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
 import AnimatedSection from "./AnimatedSection";
-import kitchen1 from "@/assets/portfolio-kitchen1.jpg";
+import kitchenLight1 from "@/assets/20220419_021335.jpg";
+import kitchenLight2 from "@/assets/20220419_021450.jpg";
+import kitchenLight3 from "@/assets/IMG-20220829-WA0029.jpg";
 import kitchen2 from "@/assets/portfolio-kitchen2.jpg";
 import wardrobe1 from "@/assets/portfolio-wardrobe1.jpg";
 import wardrobe2 from "@/assets/portfolio-wardrobe2.jpg";
@@ -8,7 +10,9 @@ import closet1 from "@/assets/portfolio-closet1.jpg";
 import heroKitchen from "@/assets/hero-kitchen.jpg";
 
 const items = [
-  { img: kitchen1, title: "Кухня в светлых тонах", category: "Кухня" },
+  { img: kitchenLight1, title: "Кухня в светлых тонах", category: "Кухня" },
+  { img: kitchenLight2, title: "Кухня в светлых тонах", category: "Кухня" },
+  { img: kitchenLight3, title: "Кухня в светлых тонах", category: "Кухня" },
   { img: wardrobe1, title: "Встроенный шкаф из массива", category: "Шкаф" },
   { img: closet1, title: "Гардеробная с системой хранения", category: "Гардеробная" },
   { img: kitchen2, title: "Кухня в тёмном стиле", category: "Кухня" },
