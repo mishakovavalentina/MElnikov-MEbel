@@ -9,15 +9,22 @@ const encode = (data: Record<string, string>) =>
 
 const sendToTelegram = async (name: string, phone: string, comment: string) => {
   const token = import.meta.env.VITE_TELEGRAM_BOT_TOKEN;
-  const chatId = import.meta.env.VITE_TELEGRAM_CHAT_ID;
-  if (!token || !chatId) return;
+  const chatIds = [
+    import.meta.env.VITE_TELEGRAM_CHAT_ID,
+    import.meta.env.VITE_TELEGRAM_CHAT_ID_2,
+  ].filter(Boolean);
+  if (!token || chatIds.length === 0) return;
 
   const text = `📋 Новая заявка на замер!\n\n👤 Имя: ${name}\n📞 Телефон: ${phone}${comment ? `\n💬 Комментарий: ${comment}` : ""}`;
-  await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chat_id: chatId, text }),
-  });
+  await Promise.all(
+    chatIds.map((chatId) =>
+      fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: chatId, text }),
+      })
+    )
+  );
 };
 
 const ContactFormSection = () => {
