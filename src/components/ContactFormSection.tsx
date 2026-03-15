@@ -2,18 +2,52 @@ import { useState } from "react";
 import AnimatedSection from "./AnimatedSection";
 import { toast } from "sonner";
 
+const encode = (data: Record<string, string>) =>
+  Object.keys(data)
+    .map((key) => encodeURIComponent(key) + "=" + encodeURIComponent(data[key]))
+    .join("&");
+
+const sendToTelegram = async (name: string, phone: string, comment: string) => {
+  const token = import.meta.env.VITE_TELEGRAM_BOT_TOKEN;
+  const chatId = import.meta.env.VITE_TELEGRAM_CHAT_ID;
+  if (!token || !chatId) return;
+
+  const text = `📋 Новая заявка на замер!\n\n👤 Имя: ${name}\n📞 Телефон: ${phone}${comment ? `\n💬 Комментарий: ${comment}` : ""}`;
+  await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chat_id: chatId, text }),
+  });
+};
+
 const ContactFormSection = () => {
   const [form, setForm] = useState({ name: "", phone: "", comment: "" });
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.phone) {
       toast.error("Заполните имя и телефон");
       return;
     }
-    setSubmitted(true);
-    toast.success("Заявка отправлена! Мы перезвоним в течение 30 минут.");
+    setLoading(true);
+    try {
+      await Promise.all([
+        fetch("/", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: encode({ "form-name": "contact", ...form }),
+        }),
+        sendToTelegram(form.name, form.phone, form.comment),
+      ]);
+      setSubmitted(true);
+      toast.success("Заявка отправлена! Мы перезвоним в течение 30 минут.");
+    } catch {
+      toast.error("Ошибка отправки. Попробуйте ещё раз.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -35,6 +69,7 @@ const ContactFormSection = () => {
                 <label className="block text-sm font-medium mb-1.5">Имя</label>
                 <input
                   type="text"
+                  name="name"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   className="w-full bg-input rounded-md px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary transition-shadow"
@@ -45,6 +80,7 @@ const ContactFormSection = () => {
                 <label className="block text-sm font-medium mb-1.5">Телефон</label>
                 <input
                   type="tel"
+                  name="phone"
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
                   className="w-full bg-input rounded-md px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary transition-shadow"
@@ -54,6 +90,7 @@ const ContactFormSection = () => {
               <div>
                 <label className="block text-sm font-medium mb-1.5">Комментарий</label>
                 <textarea
+                  name="comment"
                   value={form.comment}
                   onChange={(e) => setForm({ ...form, comment: e.target.value })}
                   rows={3}
@@ -63,9 +100,10 @@ const ContactFormSection = () => {
               </div>
               <button
                 type="submit"
-                className="w-full bg-primary text-primary-foreground py-3.5 rounded-md font-medium transition-all duration-200 hover:opacity-90 hover:shadow-lg active:scale-[0.98]"
+                disabled={loading}
+                className="w-full bg-primary text-primary-foreground py-3.5 rounded-md font-medium transition-all duration-200 hover:opacity-90 hover:shadow-lg active:scale-[0.98] disabled:opacity-60"
               >
-                Записаться на замер
+                {loading ? "Отправка..." : "Записаться на замер"}
               </button>
             </form>
           )}
