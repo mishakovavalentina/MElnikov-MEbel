@@ -4,12 +4,15 @@ import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import AnimatedSection from "./AnimatedSection";
 
 // ── Импорт фото через Vite glob ─────────────────────────────────────────────
-const nordicGlob   = import.meta.glob("../assets/portfolio/kitchens/nordic/*.{jpg,JPG}",          { eager: true, import: "default" }) as Record<string, string>;
-const loftGlob     = import.meta.glob("../assets/portfolio/kitchens/loft/*.{jpg,JPG}",            { eager: true, import: "default" }) as Record<string, string>;
-const classicGlob  = import.meta.glob("../assets/portfolio/kitchens/classic/*.{jpg,JPG}",         { eager: true, import: "default" }) as Record<string, string>;
-const minimalGlob  = import.meta.glob("../assets/portfolio/wardrobes/minimal/*.{jpg,JPG}",        { eager: true, import: "default" }) as Record<string, string>;
-const bureauGlob   = import.meta.glob("../assets/portfolio/wardrobes/bureau/*.{jpg,JPG}",         { eager: true, import: "default" }) as Record<string, string>;
-const luxuryGlob   = import.meta.glob("../assets/portfolio/dressing-rooms/luxury/*.{jpg,JPG}",    { eager: true, import: "default" }) as Record<string, string>;
+const lightGlob   = import.meta.glob("../assets/portfolio/kitchens/light/*.{jpg,JPG}",           { eager: true, import: "default" }) as Record<string, string>;
+const darkGlob    = import.meta.glob("../assets/portfolio/kitchens/dark/*.{jpg,JPG}",            { eager: true, import: "default" }) as Record<string, string>;
+const minimalGlob = import.meta.glob("../assets/portfolio/kitchens/minimal/*.{jpg,JPG}",         { eager: true, import: "default" }) as Record<string, string>;
+const blueGlob    = import.meta.glob("../assets/portfolio/kitchens/blue/*.{jpg,JPG}",            { eager: true, import: "default" }) as Record<string, string>;
+const studioGlob  = import.meta.glob("../assets/portfolio/kitchens/studio/*.{jpg,JPG,jpeg}",     { eager: true, import: "default" }) as Record<string, string>;
+const classicGlob = import.meta.glob("../assets/portfolio/wardrobes/classic/*.{jpg,JPG}",        { eager: true, import: "default" }) as Record<string, string>;
+const hallwayGlob = import.meta.glob("../assets/portfolio/wardrobes/hallway/*.{jpg,JPG}",        { eager: true, import: "default" }) as Record<string, string>;
+const bureauGlob  = import.meta.glob("../assets/portfolio/wardrobes/bureau/*.{jpg,JPG}",         { eager: true, import: "default" }) as Record<string, string>;
+const luxuryGlob  = import.meta.glob("../assets/portfolio/dressing-rooms/luxury/*.{jpg,JPG}",    { eager: true, import: "default" }) as Record<string, string>;
 
 const sorted = (g: Record<string, string>) => Object.keys(g).sort().map((k) => g[k]);
 
@@ -21,27 +24,60 @@ type Category = (typeof CATEGORIES)[number];
 
 const PROJECTS: Record<Category, Project[]> = {
   Кухни: [
-    { title: "Кухня «Нордик»",   subtitle: "Белый МДФ · столешница под дуб",          photos: sorted(nordicGlob)  },
-    { title: "Кухня «Лофт»",    subtitle: "Тёмно-серый МДФ · стальные ручки",         photos: sorted(loftGlob)    },
-    { title: "Кухня «Классика»", subtitle: "Фасады с фрезеровкой · патина",             photos: sorted(classicGlob) },
+    {
+      title: "Кухня в светлых тонах",
+      subtitle: "Белый МДФ · столешница под дуб",
+      photos: sorted(lightGlob),
+    },
+    {
+      title: "Кухня в тёмном стиле",
+      subtitle: "Тёмно-серый МДФ · стальные ручки",
+      photos: sorted(darkGlob),
+    },
+    {
+      title: "Синяя кухня",
+      subtitle: "Синие фасады · акцентный цвет",
+      photos: sorted(blueGlob),
+    },
+    {
+      title: "Минимализм",
+      subtitle: "Лаконичные линии · без лишнего декора",
+      photos: sorted(minimalGlob),
+    },
+    {
+      title: "Кухня в студии",
+      subtitle: "Компактное решение · продуманное пространство",
+      photos: sorted(studioGlob),
+    },
   ],
   Шкафы: [
-    { title: "Шкаф-купе «Минимал»",   subtitle: "Зеркальные фасады · без ручек",        photos: sorted(minimalGlob) },
-    { title: "Шкаф-бюро «Скандинав»", subtitle: "Встроенный стол · матовый белый",       photos: sorted(bureauGlob)  },
+    {
+      title: "Шкаф-купе",
+      subtitle: "Классические раздвижные двери",
+      photos: sorted(classicGlob),
+    },
+    {
+      title: "Шкаф в прихожей",
+      subtitle: "Встроенный · с подсветкой",
+      photos: sorted(hallwayGlob),
+    },
+    {
+      title: "Шкаф-бюро",
+      subtitle: "Встроенный рабочий стол · спальня",
+      photos: sorted(bureauGlob),
+    },
   ],
   Гардеробные: [
-    { title: "Гардеробная «Люкс»", subtitle: "LED-подсветка · открытые полки",           photos: sorted(luxuryGlob)  },
+    {
+      title: "Гардеробная с подсветкой",
+      subtitle: "LED-подсветка · открытые полки",
+      photos: sorted(luxuryGlob),
+    },
   ],
 };
 
 // ── Лайтбокс ────────────────────────────────────────────────────────────────
-function Lightbox({
-  project,
-  onClose,
-}: {
-  project: Project;
-  onClose: () => void;
-}) {
+function Lightbox({ project, onClose }: { project: Project; onClose: () => void }) {
   const [idx, setIdx] = useState(0);
   const total = project.photos.length;
 
@@ -51,7 +87,7 @@ function Lightbox({
   return (
     <AnimatePresence>
       <motion.div
-        key="lightbox-overlay"
+        key="overlay"
         className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -66,7 +102,6 @@ function Lightbox({
           transition={{ duration: 0.25 }}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Фото */}
           <div className="relative aspect-[4/3] bg-muted overflow-hidden">
             <AnimatePresence mode="wait">
               <motion.img
@@ -81,49 +116,28 @@ function Lightbox({
               />
             </AnimatePresence>
 
-            {/* Стрелки */}
             {total > 1 && (
               <>
-                <button
-                  onClick={prev}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition"
-                  aria-label="Предыдущее фото"
-                >
+                <button onClick={prev} className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition" aria-label="Предыдущее">
                   <ChevronLeft className="w-5 h-5" />
                 </button>
-                <button
-                  onClick={next}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition"
-                  aria-label="Следующее фото"
-                >
+                <button onClick={next} className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition" aria-label="Следующее">
                   <ChevronRight className="w-5 h-5" />
                 </button>
+                <div className="absolute bottom-3 right-4 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
+                  {idx + 1} / {total}
+                </div>
               </>
             )}
 
-            {/* Счётчик */}
-            {total > 1 && (
-              <div className="absolute bottom-3 right-4 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
-                {idx + 1} / {total}
-              </div>
-            )}
-
-            {/* Закрыть */}
-            <button
-              onClick={onClose}
-              className="absolute top-3 right-3 bg-black/50 hover:bg-black/70 text-white rounded-full p-1.5 transition"
-              aria-label="Закрыть"
-            >
+            <button onClick={onClose} className="absolute top-3 right-3 bg-black/50 hover:bg-black/70 text-white rounded-full p-1.5 transition" aria-label="Закрыть">
               <X className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Подпись */}
           <div className="p-5">
             <h3 className="font-display text-lg font-bold">{project.title}</h3>
             <p className="text-muted-foreground text-sm mt-1">{project.subtitle}</p>
-
-            {/* Миниатюры */}
             {total > 1 && (
               <div className="flex gap-2 mt-4 overflow-x-auto pb-1">
                 {project.photos.map((src, i) => (
@@ -156,7 +170,6 @@ const PortfolioFurniture = () => {
   return (
     <section id="portfolio-furniture" className="py-20 lg:py-28">
       <div className="container mx-auto px-4 lg:px-8">
-        {/* Заголовок */}
         <AnimatedSection>
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">
             Корпусная мебель
@@ -166,7 +179,6 @@ const PortfolioFurniture = () => {
           </p>
         </AnimatedSection>
 
-        {/* Вкладки категорий */}
         <AnimatedSection delay={0.05}>
           <div className="flex gap-2 mb-10 flex-wrap">
             {CATEGORIES.map((cat) => (
@@ -185,7 +197,6 @@ const PortfolioFurniture = () => {
           </div>
         </AnimatedSection>
 
-        {/* Карточки проектов */}
         <AnimatePresence mode="wait">
           <motion.div
             key={activeCategory}
@@ -213,14 +224,12 @@ const PortfolioFurniture = () => {
                   </div>
                   <div className="p-5">
                     <span className="text-xs font-medium text-primary uppercase tracking-wider">
-                      {activeCategory.replace(/и$/, "").replace(/ые$/, "ая")}
+                      {activeCategory}
                     </span>
                     <h3 className="font-display text-base font-bold mt-1">{project.title}</h3>
                     <p className="text-muted-foreground text-xs mt-1">{project.subtitle}</p>
                     {project.photos.length > 1 && (
-                      <p className="text-xs text-primary/70 mt-2">
-                        {project.photos.length} фото →
-                      </p>
+                      <p className="text-xs text-primary/70 mt-2">{project.photos.length} фото →</p>
                     )}
                   </div>
                 </button>
@@ -230,7 +239,6 @@ const PortfolioFurniture = () => {
         </AnimatePresence>
       </div>
 
-      {/* Лайтбокс */}
       {selectedProject && (
         <Lightbox project={selectedProject} onClose={() => setSelectedProject(null)} />
       )}
