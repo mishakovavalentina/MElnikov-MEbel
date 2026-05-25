@@ -186,11 +186,12 @@ def normalize_quotes(name: str) -> str:
 # ---------------------------------------------------------------------------
 
 def _fix_body_order(doc):
-    """Переставить таблицу данных (tables[1]) перед абзацем «Итого» (paras[6]).
+    """Убрать плавающее позиционирование таблицы данных и при необходимости
+    переставить её перед абзацем «Итого» (paras[6]).
 
-    В шаблоне таблица может стоять ПОСЛЕ абзаца «Итого» — тогда в готовом
-    документе итог визуально оказывается над таблицей. Функция исправляет
-    порядок XML-элементов независимо от версии template.docx.
+    Плавающая таблица (w:tblpPr) заставляет текст обтекать её, из-за чего
+    фраза тела документа визуально разрывается. Удаление w:tblpPr делает
+    таблицу строчной (inline) и устраняет разрыв.
     """
     body = doc.element.body
     all_children = list(body)
@@ -200,6 +201,13 @@ def _fix_body_order(doc):
     if len(tbls) < 2:
         return
     data_tbl = tbls[1]
+
+    # Убрать плавающее позиционирование (w:tblpPr), если есть
+    tblPr = data_tbl.find(qn("w:tblPr"))
+    if tblPr is not None:
+        tblpPr = tblPr.find(qn("w:tblpPr"))
+        if tblpPr is not None:
+            tblPr.remove(tblpPr)
 
     # Седьмой <w:p> = paras[6] = абзац «Итого...»
     body_paras = [ch for ch in all_children if ch.tag.split("}")[1] == "p"]
