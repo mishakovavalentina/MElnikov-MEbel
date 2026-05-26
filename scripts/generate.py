@@ -243,10 +243,76 @@ def normalize_quotes(name: str) -> str:
 # Работа с Word-документом
 # ---------------------------------------------------------------------------
 
+def _get_text_width(doc) -> int:
+    """Ширина текстовой области в твипах (ширина страницы минус поля)."""
+    sectPr = doc.element.body.find(qn("w:sectPr"))
+    if sectPr is None:
+        return 9638  # A4 с полями 2 см
+    pgSz  = sectPr.find(qn("w:pgSz"))
+    pgMar = sectPr.find(qn("w:pgMar"))
+    page_w = int(pgSz.get(qn("w:w"), 11906)) if pgSz is not None else 11906
+    if pgMar is not None:
+        ml = int(pgMar.get(qn("w:left"),  1134))
+        mr = int(pgMar.get(qn("w:right"), 1134))
+    else:
+        ml = mr = 1134
+    return page_w - ml - mr
+
+
+def _scale_table_to_width(tbl_element, text_width: int):
+    """
+    Если суммарная ширина столбцов таблицы превышает text_width,
+    пропорционально уменьшает все столбцы и ячейки.
+    """
+    tblGrid = tbl_element.find(qn("w:tblGrid"))
+    if tblGrid is None:
+        return
+    gridCols = tblGrid.findall(qn("w:gridCol"))
+    if not gridCols:
+        return
+
+    col_widths = [int(col.get(qn("w:w"), 0)) for col in gridCols]
+    total_w = sum(col_widths)
+    if total_w == 0 or total_w <= text_width:
+        return
+
+    scale = text_width / total_w
+
+    # Масштабируем сетку столбцов
+    new_widths = [max(1, round(w * scale)) for w in col_widths]
+    for col, new_w in zip(gridCols, new_widths):
+        col.set(qn("w:w"), str(new_w))
+
+    # Масштабируем ширины ячеек
+    for tr in tbl_element.findall(qn("w:tr")):
+        for tc in tr.findall(qn("w:tc")):
+            tcPr = tc.find(qn("w:tcPr"))
+            if tcPr is None:
+                continue
+            tcW = tcPr.find(qn("w:tcW"))
+            if tcW is not None and tcW.get(qn("w:type"), "dxa") == "dxa":
+                w = int(tcW.get(qn("w:w"), 0))
+                tcW.set(qn("w:w"), str(max(1, round(w * scale))))
+
+    # Обновляем общую ширину таблицы
+    tblPr = tbl_element.find(qn("w:tblPr"))
+    if tblPr is not None:
+        tblW = tblPr.find(qn("w:tblW"))
+        if tblW is not None:
+            tblW.set(qn("w:w"), str(text_width))
+            tblW.set(qn("w:type"), "dxa")
+        else:
+            el = OxmlElement("w:tblW")
+            el.set(qn("w:w"), str(text_width))
+            el.set(qn("w:type"), "dxa")
+            tblPr.append(el)
+
+
 def _fix_body_order(doc):
     """
-    1. Убрать плавающее позиционирование (w:tblpPr) у таблицы данных.
-    2. Сбросить левый отступ таблицы (w:tblInd = 0) — устраняет смещение вправо.
+    1. Убрать плавающее позиционирование (w:tblpPr) у таблицы данных,
+       сбросить левый отступ (w:tblInd = 0).
+    2. Масштабировать столбцы, если таблица шире текстовой области.
     3. Переставить таблицу перед абзацем «Итого» (paras[6]), если нужно.
     """
     body = doc.element.body
@@ -274,6 +340,9 @@ def _fix_body_order(doc):
             el.set(qn("w:w"), "0")
             el.set(qn("w:type"), "dxa")
             tblPr.append(el)
+
+    # Масштабировать столбцы, если таблица не помещается по ширине
+    _scale_table_to_width(data_tbl, _get_text_width(doc))
 
     # Переставить таблицу перед абзацем «Итого...» (paras[6])
     body_paras = [ch for ch in all_children if ch.tag.split("}")[1] == "p"]
