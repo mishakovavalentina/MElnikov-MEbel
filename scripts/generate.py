@@ -11,6 +11,8 @@
 Файл template.docx должен лежать рядом со скриптом.
 """
 
+VERSION = "2026-05-26c"   # масштабирование таблицы под ширину страницы
+
 import sys
 import re
 import os
@@ -277,6 +279,7 @@ def _scale_table_to_width(tbl_element, text_width: int):
         return
 
     scale = text_width / total_w
+    print(f"  [таблица] масштаб {total_w}→{text_width} twips (×{scale:.3f})")
 
     # Масштабируем сетку столбцов
     new_widths = [max(1, round(w * scale)) for w in col_widths]
@@ -588,6 +591,7 @@ def main():
         sys.exit(f"Ошибка: шаблон не найден — {TEMPLATE_PATH}\n"
                  f"Положите template.docx рядом со скриптом.")
 
+    print(f"generate.py версия {VERSION}")
     today                         = date.today()
     rows, contracts, legend, cols = load_excel(excel_path)
 
