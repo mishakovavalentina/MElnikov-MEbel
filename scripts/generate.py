@@ -11,7 +11,7 @@
 Файл template.docx должен лежать рядом со скриптом.
 """
 
-VERSION = "2026-05-26c"   # масштабирование таблицы под ширину страницы
+VERSION = "2026-05-26d"   # tblW pct=5000 (AutoFit to Window)
 
 import sys
 import re
@@ -297,17 +297,17 @@ def _scale_table_to_width(tbl_element, text_width: int):
                 w = int(tcW.get(qn("w:w"), 0))
                 tcW.set(qn("w:w"), str(max(1, round(w * scale))))
 
-    # Обновляем общую ширину таблицы
+    # Устанавливаем ширину таблицы = 100% текстовой области (AutoFit to Window)
     tblPr = tbl_element.find(qn("w:tblPr"))
     if tblPr is not None:
         tblW = tblPr.find(qn("w:tblW"))
         if tblW is not None:
-            tblW.set(qn("w:w"), str(text_width))
-            tblW.set(qn("w:type"), "dxa")
+            tblW.set(qn("w:w"), "5000")
+            tblW.set(qn("w:type"), "pct")
         else:
             el = OxmlElement("w:tblW")
-            el.set(qn("w:w"), str(text_width))
-            el.set(qn("w:type"), "dxa")
+            el.set(qn("w:w"), "5000")
+            el.set(qn("w:type"), "pct")
             tblPr.append(el)
 
 
