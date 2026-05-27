@@ -211,11 +211,12 @@ def _find_column(ws, keywords, default, max_header_row=3):
 # ---------------------------------------------------------------------------
 
 def _fix_body_order(doc):
-    """Убрать плавающее позиционирование, масштабировать колонки под ширину
-    текстовой области и при необходимости переставить таблицу перед «Итого».
+    """Убрать плавающее позиционирование, поставить таблицу по центру страницы
+    через отрицательный отступ, и при необходимости переставить её перед «Итого».
 
-    С tblLayout=fixed ширины отдельных колонок (gridCol/tcW) задают реальный
-    размер таблицы, а не tblW. Поэтому масштабируем все ширины пропорционально.
+    Исходная таблица шире текстовой области (11319 vs 9072 twips) и была
+    плавающей. Вместо масштабирования — центрируем на странице через tblInd,
+    сохраняя оригинальные ширины колонок.
     """
     body = doc.element.body
     all_children = list(body)
@@ -233,41 +234,40 @@ def _fix_body_order(doc):
         if tblpPr is not None:
             tblPr.remove(tblpPr)
 
-        # 2. Вычислить ширину текстовой области из настроек страницы
-        sectPr   = body.find(qn("w:sectPr"))
-        target_w = 9072  # A4 со стандартными полями (fallback)
+        # 2. Считать размеры страницы
+        sectPr  = body.find(qn("w:sectPr"))
+        page_w  = 11906
+        left_m  = 1418
+        right_m = 1416
         if sectPr is not None:
             pgSz  = sectPr.find(qn("w:pgSz"))
             pgMar = sectPr.find(qn("w:pgMar"))
-            if pgSz is not None and pgMar is not None:
-                pw = int(pgSz.get(qn("w:w"),    11906))
-                ml = int(pgMar.get(qn("w:left"), 1418))
-                mr = int(pgMar.get(qn("w:right"),1416))
-                target_w = pw - ml - mr
+            if pgSz  is not None:
+                page_w  = int(pgSz.get(qn("w:w"),    page_w))
+            if pgMar is not None:
+                left_m  = int(pgMar.get(qn("w:left"),  left_m))
+                right_m = int(pgMar.get(qn("w:right"), right_m))
 
-        # 3. Пропорционально уменьшить ширины колонок
-        tblW = tblPr.find(qn("w:tblW"))
-        if tblW is not None:
-            cur_w    = int(tblW.get(qn("w:w"), 0))
-            cur_type = tblW.get(qn("w:type"), "dxa")
-            if cur_type == "dxa" and cur_w > 0:
-                scale = target_w / cur_w
-                tblW.set(qn("w:w"), str(target_w))
-                # Масштабировать tblGrid
-                tblGrid = data_tbl.find(qn("w:tblGrid"))
-                if tblGrid is not None:
-                    for gc in tblGrid.findall(qn("w:gridCol")):
-                        old = int(gc.get(qn("w:w"), 0))
-                        gc.set(qn("w:w"), str(round(old * scale)))
-                # Масштабировать ширины всех ячеек
-                for tr in data_tbl.findall(qn("w:tr")):
-                    for tc in tr.findall(qn("w:tc")):
-                        tcPr = tc.find(qn("w:tcPr"))
-                        if tcPr is not None:
-                            tcW = tcPr.find(qn("w:tcW"))
-                            if tcW is not None and tcW.get(qn("w:type"), "dxa") == "dxa":
-                                old = int(tcW.get(qn("w:w"), 0))
-                                tcW.set(qn("w:w"), str(round(old * scale)))
+        # 3. Ширина таблицы
+        tblW      = tblPr.find(qn("w:tblW"))
+        tbl_width = int(tblW.get(qn("w:w"), 0))     if tblW is not None else 0
+        cur_type  = tblW.get(qn("w:type"), "dxa")   if tblW is not None else "dxa"
+        text_w    = page_w - left_m - right_m        # 9072
+
+        if cur_type == "dxa" and tbl_width > text_w:
+            # Таблица шире текстовой области — центрируем через отрицательный tblInd
+            # Левый край от края страницы: (page_w - tbl_width) / 2
+            left_edge = (page_w - tbl_width) // 2    # 293 twips от края страницы
+            tbl_ind   = left_edge - left_m            # отступ от начала текстовой области (< 0)
+
+            old_ind = tblPr.find(qn("w:tblInd"))
+            if old_ind is not None:
+                tblPr.remove(old_ind)
+            new_ind = OxmlElement("w:tblInd")
+            new_ind.set(qn("w:w"),   str(tbl_ind))
+            new_ind.set(qn("w:type"), "dxa")
+            # Вставить сразу после tblW
+            tblPr.insert(list(tblPr).index(tblW) + 1, new_ind)
 
     # 4. Переставить таблицу перед абзацем «Итого» (paras[6]), если нужно
     body_paras = [ch for ch in all_children if ch.tag.split("}")[1] == "p"]
