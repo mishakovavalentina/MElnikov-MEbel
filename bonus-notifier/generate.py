@@ -211,12 +211,11 @@ def _find_column(ws, keywords, default, max_header_row=3):
 # ---------------------------------------------------------------------------
 
 def _fix_body_order(doc):
-    """Убрать плавающее позиционирование таблицы данных, растянуть на всю ширину
-    страницы и при необходимости переставить её перед абзацем «Итого» (paras[6]).
+    """Убрать плавающее позиционирование, масштабировать колонки под ширину
+    текстовой области и при необходимости переставить таблицу перед «Итого».
 
-    Плавающая таблица (w:tblpPr) заставляет текст обтекать её — фраза тела
-    документа визуально разрывается. Удаление w:tblpPr + установка ширины 100%
-    исправляют форматирование независимо от версии template.docx.
+    С tblLayout=fixed ширины отдельных колонок (gridCol/tcW) задают реальный
+    размер таблицы, а не tblW. Поэтому масштабируем все ширины пропорционально.
     """
     body = doc.element.body
     all_children = list(body)
@@ -229,21 +228,48 @@ def _fix_body_order(doc):
 
     tblPr = data_tbl.find(qn("w:tblPr"))
     if tblPr is not None:
-        # Убрать плавающее позиционирование
+        # 1. Убрать плавающее позиционирование
         tblpPr = tblPr.find(qn("w:tblpPr"))
         if tblpPr is not None:
             tblPr.remove(tblpPr)
 
-        # Установить ширину таблицы = 100% ширины текстовой области
+        # 2. Вычислить ширину текстовой области из настроек страницы
+        sectPr   = body.find(qn("w:sectPr"))
+        target_w = 9072  # A4 со стандартными полями (fallback)
+        if sectPr is not None:
+            pgSz  = sectPr.find(qn("w:pgSz"))
+            pgMar = sectPr.find(qn("w:pgMar"))
+            if pgSz is not None and pgMar is not None:
+                pw = int(pgSz.get(qn("w:w"),    11906))
+                ml = int(pgMar.get(qn("w:left"), 1418))
+                mr = int(pgMar.get(qn("w:right"),1416))
+                target_w = pw - ml - mr
+
+        # 3. Пропорционально уменьшить ширины колонок
         tblW = tblPr.find(qn("w:tblW"))
         if tblW is not None:
-            tblPr.remove(tblW)
-        new_tblW = OxmlElement("w:tblW")
-        new_tblW.set(qn("w:w"), "5000")
-        new_tblW.set(qn("w:type"), "pct")
-        tblPr.insert(0, new_tblW)
+            cur_w    = int(tblW.get(qn("w:w"), 0))
+            cur_type = tblW.get(qn("w:type"), "dxa")
+            if cur_type == "dxa" and cur_w > 0:
+                scale = target_w / cur_w
+                tblW.set(qn("w:w"), str(target_w))
+                # Масштабировать tblGrid
+                tblGrid = data_tbl.find(qn("w:tblGrid"))
+                if tblGrid is not None:
+                    for gc in tblGrid.findall(qn("w:gridCol")):
+                        old = int(gc.get(qn("w:w"), 0))
+                        gc.set(qn("w:w"), str(round(old * scale)))
+                # Масштабировать ширины всех ячеек
+                for tr in data_tbl.findall(qn("w:tr")):
+                    for tc in tr.findall(qn("w:tc")):
+                        tcPr = tc.find(qn("w:tcPr"))
+                        if tcPr is not None:
+                            tcW = tcPr.find(qn("w:tcW"))
+                            if tcW is not None and tcW.get(qn("w:type"), "dxa") == "dxa":
+                                old = int(tcW.get(qn("w:w"), 0))
+                                tcW.set(qn("w:w"), str(round(old * scale)))
 
-    # Седьмой <w:p> = paras[6] = абзац «Итого...»
+    # 4. Переставить таблицу перед абзацем «Итого» (paras[6]), если нужно
     body_paras = [ch for ch in all_children if ch.tag.split("}")[1] == "p"]
     if len(body_paras) < 7:
         return
