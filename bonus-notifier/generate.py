@@ -28,6 +28,7 @@ except ImportError:
 try:
     from docx import Document
     from docx.oxml.ns import qn
+    from docx.oxml import OxmlElement
 except ImportError:
     sys.exit("Установите зависимости: pip install openpyxl python-docx num2words")
 
@@ -46,7 +47,9 @@ TEMPLATE_PATH = SCRIPT_DIR / "template.docx"
 
 
 # ---------------------------------------------------------------------------
-# Индексы столбцов листа «Расчет премии» (0-based)
+# Индексы столбцов листа «Расчет премии» (0-based, используются как fallback)
+# Скрипт ищет столбцы «Уведомление», «База» и «Сумма премии» по заголовку,
+# поэтому добавление новых столбцов в таблицу не влияет на работу скрипта.
 # ---------------------------------------------------------------------------
 
 COL_DATE_FROM = 2   # C  — начало периода
@@ -62,7 +65,9 @@ COL_RETURNS   = 19  # T  — обратная реализация III
 COL_OVERDUE   = 20  # U  — просроченная задолженность IV
 COL_SAMPLES   = 21  # V  — отгруженные образцы VII
 COL_RATE      = 23  # X  — процент премии VI
-COL_TRIGGER   = 25  # Z  — «Уведомление» (триггер)
+COL_BASE_DEF  = 22  # W  — база для начисления V  (fallback)
+COL_BONUS_DEF = 24  # Y  — сумма премии VIII       (fallback)
+COL_TRIGGER   = 25  # Z  — «Уведомление» (триггер, fallback)
 
 
 # ---------------------------------------------------------------------------
@@ -127,11 +132,11 @@ def safe_float(val) -> float:
 
 
 def fmt_money(amount: float) -> str:
-    """1 234 567.89 → '1 234 567,89' (неразрывный пробел, запятая)."""
+    """1 234 567.89 → '1 234 567,89' (пробел-разделитель, запятая)."""
     amount = round(amount, 2)
     integer = int(amount)
     kopecks = round((amount - integer) * 100)
-    int_str = f"{integer:,}".replace(",", " ")   # пробел-разделитель
+    int_str = f"{integer:,}".replace(",", " ")
     return f"{int_str},{kopecks:02d}"
 
 
@@ -182,16 +187,36 @@ def normalize_quotes(name: str) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Поиск столбцов по заголовку
+# ---------------------------------------------------------------------------
+
+def _find_column(ws, keywords, default, max_header_row=3):
+    """Вернуть 0-based индекс столбца, заголовок которого содержит все ключевые слова.
+
+    Просматривает строки 1..max_header_row. Если не найдено — возвращает default.
+    Благодаря этому добавление новых столбцов в таблицу не ломает скрипт.
+    """
+    for row in ws.iter_rows(min_row=1, max_row=max_header_row, values_only=True):
+        for col_i, val in enumerate(row):
+            if val is None:
+                continue
+            text = str(val).lower()
+            if all(kw.lower() in text for kw in keywords):
+                return col_i
+    return default
+
+
+# ---------------------------------------------------------------------------
 # Работа с Word-документом
 # ---------------------------------------------------------------------------
 
 def _fix_body_order(doc):
-    """Убрать плавающее позиционирование таблицы данных и при необходимости
-    переставить её перед абзацем «Итого» (paras[6]).
+    """Убрать плавающее позиционирование таблицы данных, растянуть на всю ширину
+    страницы и при необходимости переставить её перед абзацем «Итого» (paras[6]).
 
-    Плавающая таблица (w:tblpPr) заставляет текст обтекать её, из-за чего
-    фраза тела документа визуально разрывается. Удаление w:tblpPr делает
-    таблицу строчной (inline) и устраняет разрыв.
+    Плавающая таблица (w:tblpPr) заставляет текст обтекать её — фраза тела
+    документа визуально разрывается. Удаление w:tblpPr + установка ширины 100%
+    исправляют форматирование независимо от версии template.docx.
     """
     body = doc.element.body
     all_children = list(body)
@@ -202,12 +227,21 @@ def _fix_body_order(doc):
         return
     data_tbl = tbls[1]
 
-    # Убрать плавающее позиционирование (w:tblpPr), если есть
     tblPr = data_tbl.find(qn("w:tblPr"))
     if tblPr is not None:
+        # Убрать плавающее позиционирование
         tblpPr = tblPr.find(qn("w:tblpPr"))
         if tblpPr is not None:
             tblPr.remove(tblpPr)
+
+        # Установить ширину таблицы = 100% ширины текстовой области
+        tblW = tblPr.find(qn("w:tblW"))
+        if tblW is not None:
+            tblPr.remove(tblW)
+        new_tblW = OxmlElement("w:tblW")
+        new_tblW.set(qn("w:w"), "5000")
+        new_tblW.set(qn("w:type"), "pct")
+        tblPr.insert(0, new_tblW)
 
     # Седьмой <w:p> = paras[6] = абзац «Итого...»
     body_paras = [ch for ch in all_children if ch.tag.split("}")[1] == "p"]
@@ -221,6 +255,7 @@ def _fix_body_order(doc):
     if tbl_idx > total_idx:
         body.remove(data_tbl)
         body.insert(total_idx, data_tbl)
+
 
 def _clear_para_content(para):
     """Удалить все раны и маркеры проверки орфографии, оставить pPr."""
@@ -239,11 +274,7 @@ def _clear_para_content(para):
 
 
 def _set_para_text(para, text: str):
-    """
-    Заменить текст параграфа на text, сохранив форматирование
-    (шрифт, размер, жирность) первого содержательного рана.
-    """
-    # Сохранить атрибуты форматирования
+    """Заменить текст параграфа, сохранив форматирование первого рана."""
     font_name, font_size, bold = "Arial", None, None
     for run in para.runs:
         if run.font.name or run.bold is not None or run.font.size:
@@ -289,6 +320,8 @@ def load_excel(excel_path: str):
         rows      — список строк с отметкой «Сделать»
         contracts — {клиент: реквизиты договора}
         legend    — {комментарий: наименование премии}
+        base_col  — индекс столбца «База для начисления»
+        bonus_col — индекс столбца «Сумма премии»
     """
     wb = openpyxl.load_workbook(excel_path, data_only=True)
 
@@ -305,19 +338,22 @@ def load_excel(excel_path: str):
     for row in ws_legend.iter_rows(min_row=2, values_only=True):
         if row[0] and row[1]:
             legend[str(row[0]).strip()] = str(row[1]).strip()
-    # «Неликвиды» — опечатка, приравниваем к «Неликвид»
     if "Неликвид" in legend:
         legend["Неликвиды"] = legend["Неликвид"]
 
-    # Строки для генерации
-    ws_calc = wb["Расчет премии"]
-    rows    = []
+    # Найти ключевые столбцы по заголовку (устойчиво к добавлению новых столбцов)
+    ws_calc   = wb["Расчет премии"]
+    trig_col  = _find_column(ws_calc, ["уведомление"],       COL_TRIGGER)
+    base_col  = _find_column(ws_calc, ["база", "начисл"],    COL_BASE_DEF)
+    bonus_col = _find_column(ws_calc, ["сумма", "премии"],   COL_BONUS_DEF)
+
+    rows = []
     for row in ws_calc.iter_rows(min_row=3, values_only=True):
-        trigger = row[COL_TRIGGER]
-        if trigger and str(trigger).strip().lower() == "сделать":
+        trig = row[trig_col] if trig_col < len(row) else None
+        if trig and str(trig).strip().lower() == "сделать":
             rows.append(row)
 
-    return rows, contracts, legend
+    return rows, contracts, legend, base_col, bonus_col
 
 
 # ---------------------------------------------------------------------------
@@ -325,7 +361,8 @@ def load_excel(excel_path: str):
 # ---------------------------------------------------------------------------
 
 def build_notification(row, contracts: dict, legend: dict,
-                        output_dir: Path, today: date) -> tuple:
+                        output_dir: Path, today: date,
+                        base_col: int, bonus_col: int) -> tuple:
     """
     Создаёт .docx для одной строки Excel.
     Возвращает (путь_к_файлу, сумма_премии).
@@ -339,8 +376,8 @@ def build_notification(row, contracts: dict, legend: dict,
     date_to   = row[COL_DATE_TO]
 
     # Дата уведомления
-    is_rs       = "русский свет" in client.lower()
-    notif_date  = date_to if is_rs else datetime(today.year, today.month, today.day)
+    is_rs      = "русский свет" in client.lower()
+    notif_date = date_to if is_rs else datetime(today.year, today.month, today.day)
 
     # ДС
     ds_num, ds_date = parse_ds(ds_str)
@@ -348,27 +385,24 @@ def build_notification(row, contracts: dict, legend: dict,
     # Договор
     contract = contracts.get(client)
     if contract is None:
-        # Пробуем нормализованное имя (заменяем прямые кавычки на ёлочки)
         contract = contracts.get(normalize_quotes(client), "— нет в реестре —")
 
     # Наименование премии
-    # Сначала ищем по Комментарию (H), затем по Категории (I) — для «Маркетинг» → «Маркетинг / Оборотный / Безусловный»
     bonus_name = legend.get(comment) or legend.get(category, comment)
 
     # Маркетинг-фраза
     is_marketing   = "маркетинг" in category.lower()
     marketing_frag = "за достигнутый товарооборот " if is_marketing else ""
 
-    # Расчёт сумм (пересчёт от исходных значений)
+    # Значения из Excel (кэшированные формулы)
     turnover  = safe_float(row[COL_TURNOVER])   # I
     exclusion = safe_float(row[COL_EXCLUSION])  # II
     returns_  = safe_float(row[COL_RETURNS])    # III
     overdue   = safe_float(row[COL_OVERDUE])    # IV
     samples   = safe_float(row[COL_SAMPLES])    # VII
     rate      = safe_float(row[COL_RATE])       # VI
-
-    base  = turnover - exclusion - returns_ - overdue   # V
-    bonus = round(base * rate - samples, 2)              # VIII
+    base      = safe_float(row[base_col]  if base_col  < len(row) else None)   # V
+    bonus     = round(safe_float(row[bonus_col] if bonus_col < len(row) else None), 2)  # VIII
 
     # Текст параграфов
     client_display = normalize_quotes(client)
@@ -395,17 +429,17 @@ def build_notification(row, contracts: dict, legend: dict,
 
     # Копируем шаблон и заменяем содержимое
     doc   = Document(str(TEMPLATE_PATH))
-    _fix_body_order(doc)    # гарантируем: таблица данных ДО абзаца «Итого»
-    paras = doc.paragraphs  # P0..P14
+    _fix_body_order(doc)    # убирает плавающую таблицу и выставляет ширину 100%
+    paras = doc.paragraphs
 
-    _set_para_text(paras[2], title_text)   # заголовок
-    _set_para_text(paras[4], body_text)    # тело
-    _set_para_text(paras[6], total_text)   # итого-текст
+    _set_para_text(paras[2], title_text)
+    _set_para_text(paras[4], body_text)
+    _set_para_text(paras[6], total_text)
 
     # Таблица данных (doc.tables[1])
     t        = doc.tables[1]
-    data_row = t.rows[2]   # строка с данными
-    itg_row  = t.rows[3]   # строка «ИТОГО:»
+    data_row = t.rows[2]
+    itg_row  = t.rows[3]
 
     _set_cell_text(data_row.cells[0], bonus_name)
     _set_cell_text(data_row.cells[1], fmt_money(turnover))
@@ -419,16 +453,13 @@ def build_notification(row, contracts: dict, legend: dict,
 
     _set_cell_text(itg_row.cells[8], fmt_money(bonus), bold=True)
 
-    # Сохраняем — имя файла совпадает с заголовком документа
-    # Уведомление о расчете премии ETMQ1ALL2026 от 25 мая 2026 года.docx
-    notif_clean = re.sub(r'[/\s]+', '', notif_num)   # убираем слеши и пробелы
+    notif_clean = re.sub(r'[/\s]+', '', notif_num)
     file_name   = (
         f"Уведомление о расчете премии {notif_clean} "
         f"от {notif_date.day} {MONTHS_RU[notif_date.month]} {notif_date.year} года.docx"
     )
-    # Убираем символы, недопустимые в именах файлов Windows
-    safe_file   = re.sub(r'[\\:*?"<>|]', '_', file_name)
-    out_path    = output_dir / safe_file
+    safe_file = re.sub(r'[\\:*?"<>|]', '_', file_name)
+    out_path  = output_dir / safe_file
     doc.save(str(out_path))
     return out_path, bonus
 
@@ -450,8 +481,8 @@ def main():
         sys.exit(f"Ошибка: шаблон не найден — {TEMPLATE_PATH}\n"
                  f"Положите template.docx рядом со скриптом.")
 
-    today            = date.today()
-    rows, contracts, legend = load_excel(excel_path)
+    today = date.today()
+    rows, contracts, legend, base_col, bonus_col = load_excel(excel_path)
 
     if not rows:
         print("Строк с отметкой «Сделать» в столбце «Уведомление» не найдено.")
@@ -469,7 +500,7 @@ def main():
         client    = str(row[COL_CLIENT]).strip()    if row[COL_CLIENT]    else "?"
         try:
             out_path, bonus = build_notification(
-                row, contracts, legend, output_dir, today
+                row, contracts, legend, output_dir, today, base_col, bonus_col
             )
             print(f"  ✓  {notif_num:<30}  {client:<40}  {fmt_money(bonus)} руб.")
             ok += 1
