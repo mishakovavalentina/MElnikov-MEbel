@@ -51,7 +51,35 @@
     ├── App.css             — Стили приложения
     ├── index.css           — Глобальные стили, CSS-переменные темы, шрифты
     ├── vite-env.d.ts       — Типы Vite
-    ├── assets/             — Изображения (фото кухонь, портфолио, штор)
+    ├── assets/             — Изображения (два уровня, см. ниже)
+    │   ├── hero-kitchen.jpg               — фото для HeroSection
+    │   ├── portfolio-curtains1.jpg        — шторы, используется в PortfolioTextile
+    │   ├── portfolio-curtains2.jpg        — шторы, используется в PortfolioTextile
+    │   ├── portfolio-blinds1.jpg          — жалюзи, используется в SunProtectionSection
+    │   ├── portfolio-horizontal-blinds.jpg
+    │   ├── portfolio-vertical-blinds.jpg
+    │   ├── portfolio-pleated-blinds.jpg
+    │   ├── portfolio-kitchen1.jpg         — устаревшие файлы (не используются в компонентах)
+    │   ├── portfolio-kitchen2.jpg
+    │   ├── portfolio-closet1.jpg
+    │   ├── portfolio-wardrobe1.jpg
+    │   ├── portfolio-wardrobe2.jpg
+    │   ├── 20220419_021335.jpg            — оригинальные фото (не используются напрямую)
+    │   ├── 20220419_021450.jpg
+    │   ├── IMG-20220829-WA0029.jpg
+    │   └── portfolio/                     — фото для PortfolioFurniture (Vite glob import)
+    │       ├── kitchens/
+    │       │   ├── light/    cover.jpg, photo-2.jpg, photo-3.jpg
+    │       │   ├── dark/     cover.jpg, photo-2.jpg … photo-7.jpg
+    │       │   ├── blue/     cover.jpg, photo-2.jpg, photo-3.jpg
+    │       │   ├── minimal/  cover.jpg, photo-2.jpg
+    │       │   └── studio/   cover.jpg, photo-2.jpg, photo-3.jpg
+    │       ├── wardrobes/
+    │       │   ├── classic/  cover.jpg, photo-2.jpg, photo-3.jpg, photo-4.jpg
+    │       │   ├── hallway/  cover.jpg, photo-2.jpg
+    │       │   └── bureau/   cover.jpg, photo-2.jpg
+    │       └── dressing-rooms/
+    │           └── luxury/   cover.jpg
     ├── components/         — React-компоненты
     │   ├── ui/             — shadcn/ui компоненты (button, dialog, card, toast и др.)
     │   ├── Header.tsx      — Шапка сайта
@@ -132,7 +160,7 @@
 - В `index.html` также есть скрытая форма Netlify Forms (поля: name, phone, comment)
 - Язык сайта — русский (`<html lang="ru">`)
 - Проект создан на платформе Lovable (lovable-tagger используется как dev-зависимость)
-- Изображения хранятся локально в `src/assets/` (фото мебели, штор, жалюзи)
+- Изображения — два уровня: плоские файлы в `src/assets/*.jpg` (герой, шторы, жалюзи) и структурированная папка `src/assets/portfolio/` с подпапками по категориям и наименованиям (kitchens/light, kitchens/dark, kitchens/blue, kitchens/minimal, kitchens/studio, wardrobes/classic, wardrobes/hallway, wardrobes/bureau, dressing-rooms/luxury). `PortfolioFurniture.tsx` загружает фото из `portfolio/` через `import.meta.glob`; остальные компоненты импортируют файлы напрямую
 - Бэкенда нет — проект полностью клиентский
 
 ## 7. Язык и стиль работы
