@@ -6,8 +6,7 @@ const navLinks = [
   { label: "Направления", href: "#directions" },
   { label: "Портфолио", href: "#portfolio-furniture" },
   { label: "Как мы работаем", href: "#process" },
-  { label: "Отзывы", href: "#reviews" },
-  { label: "Контакты", href: "#contacts" },
+{ label: "Контакты", href: "#contacts" },
 ];
 
 const Header = () => {
