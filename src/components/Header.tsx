@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/use-auth";
 
 const navLinks = [
   { label: "Направления", href: "#directions" },
@@ -11,6 +13,7 @@ const navLinks = [
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { user, signOut } = useAuth();
 
   const scrollTo = (href: string) => {
     setIsOpen(false);
@@ -43,6 +46,20 @@ const Header = () => {
           >
             Заказать замер
           </button>
+          {user ? (
+            <div className="flex items-center gap-3">
+              <Link to="/cabinet" className="font-body text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Кабинет
+              </Link>
+              <button onClick={() => signOut()} className="font-body text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Выйти
+              </button>
+            </div>
+          ) : (
+            <Link to="/login" className="font-body text-sm border border-primary text-primary px-4 py-2 rounded-md hover:bg-primary hover:text-primary-foreground transition-colors">
+              Войти
+            </Link>
+          )}
         </nav>
 
         {/* Mobile burger */}
@@ -80,6 +97,20 @@ const Header = () => {
               >
                 Заказать замер
               </button>
+              {user ? (
+                <>
+                  <Link to="/cabinet" onClick={() => setIsOpen(false)} className="font-body text-left py-2 text-foreground hover:text-primary transition-colors">
+                    Кабинет
+                  </Link>
+                  <button onClick={() => { signOut(); setIsOpen(false); }} className="font-body text-left py-2 text-foreground hover:text-primary transition-colors">
+                    Выйти
+                  </button>
+                </>
+              ) : (
+                <Link to="/login" onClick={() => setIsOpen(false)} className="font-body text-left py-2 text-primary font-medium">
+                  Войти
+                </Link>
+              )}
             </nav>
           </motion.div>
         )}
