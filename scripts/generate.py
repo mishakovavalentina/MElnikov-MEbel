@@ -11,7 +11,7 @@
 Файл template.docx должен лежать рядом со скриптом.
 """
 
-VERSION = "2026-06-25e"   # fix: паттерн «вывода из-под» — родительный падеж в заголовке столбца
+VERSION = "2026-06-25f"   # диагностика: вывод всех найденных столбцов для отладки
 
 import sys
 import re
@@ -150,10 +150,12 @@ def detect_columns(ws_calc) -> dict:
                 break
         cols[key] = found_idx if found_idx is not None else _COL_DEFAULTS[key]
 
-    # Диагностика: показываем, какой столбец нашли для триггера
-    trig_idx = cols["trigger"]
-    trig_src = headers[trig_idx] if trig_idx < len(headers) else "(нет)"
-    print(f"  [диагностика] столбец «Уведомление»: {_col_letter(trig_idx)} (индекс {trig_idx}, заголовок: «{trig_src}»)")
+    # Диагностика: показываем все найденные столбцы
+    print("  [диагностика] определённые столбцы:")
+    for key, idx in cols.items():
+        src = headers[idx][:40] if idx < len(headers) else "(нет)"
+        default_mark = " ← ДЕФОЛТ!" if idx == _COL_DEFAULTS[key] else ""
+        print(f"    {key:<12} → {_col_letter(idx):>3} (idx {idx:>2})  «{src}»{default_mark}")
 
     return cols
 
