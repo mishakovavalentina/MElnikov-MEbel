@@ -11,7 +11,7 @@
 Файл template.docx должен лежать рядом со скриптом.
 """
 
-VERSION = "2026-06-25c"   # fix: неразрывные пробелы в числах — сумма не переносится на две строки
+VERSION = "2026-06-25d"   # fix: заголовки с переносом строки внутри ячейки теперь распознаются корректно
 
 import sys
 import re
@@ -111,10 +111,16 @@ def detect_columns(ws_calc) -> dict:
     Возвращает dict {ключ: индекс_0based}.
     Для не найденных столбцов подставляет значения из _COL_DEFAULTS.
     """
+    import re as _re
+
+    def _normalize(val):
+        """Нормализует заголовок: убирает переносы строк, лишние пробелы, регистр."""
+        return _re.sub(r'\s+', ' ', (val or "").replace("\n", " ").replace("\r", " ")).strip().lower()
+
     headers = None
     for header_row in (2, 1):
         try:
-            h = [(cell.value or "").strip().lower() for cell in ws_calc[header_row]]
+            h = [_normalize(cell.value) for cell in ws_calc[header_row]]
         except Exception:
             continue
         # Считаем строку заголовков, если в ней есть хотя бы «уведомление»
@@ -124,7 +130,7 @@ def detect_columns(ws_calc) -> dict:
 
     if headers is None:
         try:
-            headers = [(cell.value or "").strip().lower() for cell in ws_calc[2]]
+            headers = [_normalize(cell.value) for cell in ws_calc[2]]
         except Exception:
             return dict(_COL_DEFAULTS)
 
