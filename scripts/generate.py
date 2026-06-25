@@ -11,7 +11,7 @@
 Файл template.docx должен лежать рядом со скриптом.
 """
 
-VERSION = "2026-06-25a"   # fix: пустой номер уведомления давал "None" в имени файла
+VERSION = "2026-06-25b"   # fix: искать заголовки в строке 1 если в строке 2 нет «Уведомление»; диагностика столбца
 
 import sys
 import re
@@ -95,16 +95,38 @@ _COL_PATTERNS = {
 }
 
 
+def _col_letter(idx: int) -> str:
+    """0-based индекс → буква(ы) столбца Excel (A, B, ..., Z, AA, ...)."""
+    result = ""
+    n = idx + 1
+    while n:
+        n, r = divmod(n - 1, 26)
+        result = chr(65 + r) + result
+    return result
+
+
 def detect_columns(ws_calc) -> dict:
     """
-    Читает строку 2 листа «Расчет премии» и ищет столбцы по ключевым словам.
+    Ищет столбцы по заголовкам в строке 2 (или 1, если 2 пуста/не содержит нужных слов).
     Возвращает dict {ключ: индекс_0based}.
     Для не найденных столбцов подставляет значения из _COL_DEFAULTS.
     """
-    try:
-        headers = [(cell.value or "").strip().lower() for cell in ws_calc[2]]
-    except Exception:
-        return dict(_COL_DEFAULTS)
+    headers = None
+    for header_row in (2, 1):
+        try:
+            h = [(cell.value or "").strip().lower() for cell in ws_calc[header_row]]
+        except Exception:
+            continue
+        # Считаем строку заголовков, если в ней есть хотя бы «уведомление»
+        if any("уведомление" in v for v in h):
+            headers = h
+            break
+
+    if headers is None:
+        try:
+            headers = [(cell.value or "").strip().lower() for cell in ws_calc[2]]
+        except Exception:
+            return dict(_COL_DEFAULTS)
 
     cols = {}
     for key, patterns in _COL_PATTERNS.items():
@@ -121,6 +143,11 @@ def detect_columns(ws_calc) -> dict:
                 found_idx = i
                 break
         cols[key] = found_idx if found_idx is not None else _COL_DEFAULTS[key]
+
+    # Диагностика: показываем, какой столбец нашли для триггера
+    trig_idx = cols["trigger"]
+    trig_src = headers[trig_idx] if trig_idx < len(headers) else "(нет)"
+    print(f"  [диагностика] столбец «Уведомление»: {_col_letter(trig_idx)} (индекс {trig_idx}, заголовок: «{trig_src}»)")
 
     return cols
 
