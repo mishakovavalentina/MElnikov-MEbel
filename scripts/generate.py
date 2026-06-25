@@ -11,7 +11,7 @@
 Файл template.docx должен лежать рядом со скриптом.
 """
 
-VERSION = "2026-06-25f"   # диагностика: вывод всех найденных столбцов для отладки
+VERSION = "2026-06-25g"   # диагностика: сырое значение exclusion в найденной строке
 
 import sys
 import re
@@ -493,6 +493,13 @@ def load_excel(excel_path: str):
         trigger = row[trigger_idx] if trigger_idx < len(row) else None
         if trigger and str(trigger).strip().lower() == "сделать":
             rows.append(row)
+            excl_idx  = cols["exclusion"]
+            excl_raw  = row[excl_idx] if excl_idx < len(row) else "ВНЕ ДИАПАЗОНА"
+            # Дополнительно покажем соседние ячейки для контекста
+            ctx = {_col_letter(i): row[i] for i in range(max(0, excl_idx-2), min(len(row), excl_idx+3))}
+            print(f"  [debug] найдена строка {_col_letter(cols['client'])}={row[cols['client']]!r}")
+            print(f"  [debug] exclusion idx={excl_idx} ({_col_letter(excl_idx)}) raw={excl_raw!r} type={type(excl_raw).__name__}")
+            print(f"  [debug] контекст ±2 ячейки: {ctx}")
 
     return rows, contracts, legend, cols
 
