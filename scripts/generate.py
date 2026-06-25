@@ -11,7 +11,7 @@
 Файл template.docx должен лежать рядом со скриптом.
 """
 
-VERSION = "2026-05-26d"   # tblW pct=5000 (AutoFit to Window)
+VERSION = "2026-06-25a"   # fix: пустой номер уведомления давал "None" в имени файла
 
 import sys
 import re
@@ -476,8 +476,14 @@ def build_notification(row, contracts: dict, legend: dict,
         idx = cols[key]
         return row[idx] if idx < len(row) else None
 
-    notif_num = str(get("notif_num")).strip()
-    client    = str(get("client")).strip()
+    _nn = get("notif_num")
+    if _nn is None:
+        notif_num = ""
+    elif isinstance(_nn, (int, float)):
+        notif_num = str(int(_nn))
+    else:
+        notif_num = str(_nn).strip()
+    client    = str(get("client")).strip() if get("client") is not None else ""
     ds_str    = str(get("ds")).strip() if get("ds") else ""
     comment   = str(get("comment")).strip() if get("comment") else ""
     category  = str(get("category")).strip() if get("category") else ""
