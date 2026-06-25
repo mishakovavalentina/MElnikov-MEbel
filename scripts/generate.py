@@ -11,7 +11,7 @@
 Файл template.docx должен лежать рядом со скриптом.
 """
 
-VERSION = "2026-06-25g"   # диагностика: сырое значение exclusion в найденной строке
+VERSION = "2026-06-25h"   # исправление: объединённые ячейки в строке данных шаблона
 
 import sys
 import re
@@ -598,15 +598,37 @@ def build_notification(row, contracts: dict, legend: dict,
     data_row = t.rows[2]
     itg_row  = t.rows[3]
 
-    _set_cell_text(data_row.cells[0], bonus_name)
-    _set_cell_text(data_row.cells[1], fmt_money(turnover))
-    _set_cell_text(data_row.cells[2], fmt_cell(exclusion))
-    _set_cell_text(data_row.cells[3], fmt_cell(returns_))
-    _set_cell_text(data_row.cells[4], fmt_cell(overdue))
-    _set_cell_text(data_row.cells[5], fmt_money(base))
-    _set_cell_text(data_row.cells[6], fmt_percent(rate))
-    _set_cell_text(data_row.cells[7], fmt_cell(samples))
-    _set_cell_text(data_row.cells[8], fmt_money(bonus))
+    # В шаблоне ячейки II, III, IV могут быть объединены в одну.
+    # Группируем записи по реальному объекту ячейки; для объединённой ячейки
+    # предпочитаем первое непустое (не "-") значение.
+    _cell_writes = [
+        (0, bonus_name),
+        (1, fmt_money(turnover)),
+        (2, fmt_cell(exclusion)),
+        (3, fmt_cell(returns_)),
+        (4, fmt_cell(overdue)),
+        (5, fmt_money(base)),
+        (6, fmt_percent(rate)),
+        (7, fmt_cell(samples)),
+        (8, fmt_money(bonus)),
+    ]
+    _unique = {}   # id(cell) -> (cell, text)
+    for _idx, _text in _cell_writes:
+        if _idx >= len(data_row.cells):
+            continue
+        _c   = data_row.cells[_idx]
+        _cid = id(_c)
+        if _cid not in _unique:
+            _unique[_cid] = (_c, _text)
+        elif _text != "-" and _unique[_cid][1] == "-":
+            _unique[_cid] = (_c, _text)  # заменяем прочерк реальным значением
+
+    if len(_unique) < len(_cell_writes):
+        print(f"  [info] объединённые ячейки в строке данных: "
+              f"{len(_unique)} уникальных из {len(_cell_writes)}")
+
+    for _c, _text in _unique.values():
+        _set_cell_text(_c, _text)
 
     _set_cell_text(itg_row.cells[8], fmt_money(bonus), bold=True)
 
