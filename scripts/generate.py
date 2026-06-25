@@ -11,7 +11,7 @@
 Файл template.docx должен лежать рядом со скриптом.
 """
 
-VERSION = "2026-06-25b"   # fix: искать заголовки в строке 1 если в строке 2 нет «Уведомление»; диагностика столбца
+VERSION = "2026-06-25c"   # fix: неразрывные пробелы в числах — сумма не переносится на две строки
 
 import sys
 import re
@@ -214,11 +214,11 @@ def safe_float(val) -> float:
 
 
 def fmt_money(amount: float) -> str:
-    """1 234 567.89 → '1 234 567,89' (пробел-разделитель, запятая)."""
+    """1 234 567.89 → '1\xa0234\xa0567,89' (неразрывный пробел — число не переносится)."""
     amount = round(amount, 2)
     integer = int(amount)
     kopecks = round((amount - integer) * 100)
-    int_str = f"{integer:,}".replace(",", " ")
+    int_str = f"{integer:,}".replace(",", "\xa0")
     return f"{int_str},{kopecks:02d}"
 
 
