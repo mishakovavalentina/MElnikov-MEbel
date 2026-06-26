@@ -11,7 +11,7 @@
 Файл template.docx должен лежать рядом со скриптом.
 """
 
-VERSION = "2026-06-25i"   # выравнивание таблицы по ширине текста документа
+VERSION = "2026-06-25j"   # таблица выравнивается по реальным отступам параграфов
 
 import sys
 import re
@@ -296,11 +296,35 @@ def _get_text_width(doc) -> int:
     return page_w - ml - mr
 
 
-def _scale_table_to_width(tbl_element, text_width: int):
+def _read_para_indent(doc):
     """
-    Масштабирует столбцы таблицы так, чтобы их суммарная ширина равнялась
-    text_width (ширина текстовой области страницы). Работает в обе стороны —
-    и уменьшение, и увеличение. Устанавливает точную ширину таблицы (dxa).
+    Возвращает (ind_left, ind_right) — наиболее расширяющие отступы
+    среди всех текстовых параграфов документа (могут быть отрицательными:
+    отрицательное значение = текст выходит за поле страницы).
+    """
+    min_left = min_right = 0
+    for para in doc.paragraphs:
+        if not para.text.strip():
+            continue
+        pPr = para._p.find(qn("w:pPr"))
+        if pPr is None:
+            continue
+        ind = pPr.find(qn("w:ind"))
+        if ind is None:
+            continue
+        left  = int(ind.get(qn("w:left"),  "0"))
+        right = int(ind.get(qn("w:right"), "0"))
+        if left < min_left:
+            min_left = left
+        if right < min_right:
+            min_right = right
+    return min_left, min_right
+
+
+def _scale_table_to_width(tbl_element, target_width: int, tbl_ind: int = 0):
+    """
+    Масштабирует столбцы таблицы до target_width, устанавливает точную ширину
+    (dxa) и левый отступ (tblInd). Работает в обе стороны (уменьшение/увеличение).
     """
     tblGrid = tbl_element.find(qn("w:tblGrid"))
     if tblGrid is None:
@@ -314,14 +338,14 @@ def _scale_table_to_width(tbl_element, text_width: int):
     if total_w == 0:
         return
 
-    if total_w != text_width:
-        scale = text_width / total_w
-        print(f"  [таблица] масштаб {total_w}→{text_width} twips (×{scale:.3f})")
+    if total_w != target_width:
+        scale = target_width / total_w
+        print(f"  [таблица] масштаб {total_w}→{target_width} twips (×{scale:.3f})")
 
         # Масштабируем сетку столбцов
         new_widths = [max(1, round(w * scale)) for w in col_widths]
-        # Корректируем последний столбец, чтобы сумма была точно text_width
-        diff = text_width - sum(new_widths)
+        # Корректируем последний столбец, чтобы сумма была точно target_width
+        diff = target_width - sum(new_widths)
         new_widths[-1] = max(1, new_widths[-1] + diff)
 
         for col, new_w in zip(gridCols, new_widths):
@@ -338,25 +362,40 @@ def _scale_table_to_width(tbl_element, text_width: int):
                     w = int(tcW.get(qn("w:w"), 0))
                     tcW.set(qn("w:w"), str(max(1, round(w * scale))))
 
-    # Устанавливаем точную ширину таблицы в абсолютных единицах (twips)
+    # Устанавливаем точную ширину таблицы и левый отступ
     tblPr = tbl_element.find(qn("w:tblPr"))
-    if tblPr is not None:
-        tblW = tblPr.find(qn("w:tblW"))
-        if tblW is not None:
-            tblW.set(qn("w:w"), str(text_width))
-            tblW.set(qn("w:type"), "dxa")
+    if tblPr is None:
+        return
+
+    # tblW
+    tblW = tblPr.find(qn("w:tblW"))
+    if tblW is not None:
+        tblW.set(qn("w:w"), str(target_width))
+        tblW.set(qn("w:type"), "dxa")
+    else:
+        el = OxmlElement("w:tblW")
+        el.set(qn("w:w"), str(target_width))
+        el.set(qn("w:type"), "dxa")
+        tblPr.append(el)
+
+    # tblInd — вставляем перед tblLayout (правильная позиция по схеме OOXML)
+    tblInd_el = tblPr.find(qn("w:tblInd"))
+    if tblInd_el is None:
+        tblInd_el = OxmlElement("w:tblInd")
+        tblLayout = tblPr.find(qn("w:tblLayout"))
+        if tblLayout is not None:
+            tblPr.insert(list(tblPr).index(tblLayout), tblInd_el)
         else:
-            el = OxmlElement("w:tblW")
-            el.set(qn("w:w"), str(text_width))
-            el.set(qn("w:type"), "dxa")
-            tblPr.append(el)
+            tblPr.append(tblInd_el)
+    tblInd_el.set(qn("w:w"), str(tbl_ind))
+    tblInd_el.set(qn("w:type"), "dxa")
 
 
 def _fix_body_order(doc):
     """
-    1. Убрать плавающее позиционирование (w:tblpPr) у таблицы данных,
-       сбросить левый отступ (w:tblInd = 0).
-    2. Масштабировать столбцы, если таблица шире текстовой области.
+    1. Убрать плавающее позиционирование (w:tblpPr) у таблицы данных.
+    2. Масштабировать столбцы и выровнять таблицу по ширине текста
+       с учётом отрицательных отступов параграфов (выход за поля страницы).
     3. Переставить таблицу перед абзацем «Итого» (paras[6]), если нужно.
     """
     body = doc.element.body
@@ -374,19 +413,20 @@ def _fix_body_order(doc):
         if tblpPr is not None:
             tblPr.remove(tblpPr)
 
-        # Сбросить левый отступ до нуля
-        tblInd = tblPr.find(qn("w:tblInd"))
-        if tblInd is not None:
-            tblInd.set(qn("w:w"), "0")
-            tblInd.set(qn("w:type"), "dxa")
-        else:
-            el = OxmlElement("w:tblInd")
-            el.set(qn("w:w"), "0")
-            el.set(qn("w:type"), "dxa")
-            tblPr.append(el)
+    # Вычисляем целевую ширину таблицы с учётом отступов параграфов.
+    # Параграфы шаблона могут иметь отрицательные ind (выход за поля страницы);
+    # таблица должна совпадать с ними по ширине.
+    text_width        = _get_text_width(doc)
+    ind_left, ind_right = _read_para_indent(doc)
+    # Для отрицательных отступов: target_width > text_width (таблица шире)
+    target_width = text_width - ind_left - ind_right
+    tbl_ind      = ind_left   # отрицательный = таблица заходит в левое поле
 
-    # Масштабировать столбцы, если таблица не помещается по ширине
-    _scale_table_to_width(data_tbl, _get_text_width(doc))
+    print(f"  [таблица] text_width={text_width}  para_ind=({ind_left},{ind_right})"
+          f"  → target_width={target_width}  tblInd={tbl_ind}")
+
+    # Масштабировать столбцы и выставить tblW + tblInd
+    _scale_table_to_width(data_tbl, target_width, tbl_ind)
 
     # Переставить таблицу перед абзацем «Итого...» (paras[6])
     body_paras = [ch for ch in all_children if ch.tag.split("}")[1] == "p"]
