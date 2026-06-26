@@ -11,7 +11,7 @@
 Файл template.docx должен лежать рядом со скриптом.
 """
 
-VERSION = "2026-06-25h"   # исправление: объединённые ячейки в строке данных шаблона
+VERSION = "2026-06-25i"   # выравнивание таблицы по ширине текста документа
 
 import sys
 import re
@@ -298,8 +298,9 @@ def _get_text_width(doc) -> int:
 
 def _scale_table_to_width(tbl_element, text_width: int):
     """
-    Если суммарная ширина столбцов таблицы превышает text_width,
-    пропорционально уменьшает все столбцы и ячейки.
+    Масштабирует столбцы таблицы так, чтобы их суммарная ширина равнялась
+    text_width (ширина текстовой области страницы). Работает в обе стороны —
+    и уменьшение, и увеличение. Устанавливает точную ширину таблицы (dxa).
     """
     tblGrid = tbl_element.find(qn("w:tblGrid"))
     if tblGrid is None:
@@ -310,39 +311,44 @@ def _scale_table_to_width(tbl_element, text_width: int):
 
     col_widths = [int(col.get(qn("w:w"), 0)) for col in gridCols]
     total_w = sum(col_widths)
-    if total_w == 0 or total_w <= text_width:
+    if total_w == 0:
         return
 
-    scale = text_width / total_w
-    print(f"  [таблица] масштаб {total_w}→{text_width} twips (×{scale:.3f})")
+    if total_w != text_width:
+        scale = text_width / total_w
+        print(f"  [таблица] масштаб {total_w}→{text_width} twips (×{scale:.3f})")
 
-    # Масштабируем сетку столбцов
-    new_widths = [max(1, round(w * scale)) for w in col_widths]
-    for col, new_w in zip(gridCols, new_widths):
-        col.set(qn("w:w"), str(new_w))
+        # Масштабируем сетку столбцов
+        new_widths = [max(1, round(w * scale)) for w in col_widths]
+        # Корректируем последний столбец, чтобы сумма была точно text_width
+        diff = text_width - sum(new_widths)
+        new_widths[-1] = max(1, new_widths[-1] + diff)
 
-    # Масштабируем ширины ячеек
-    for tr in tbl_element.findall(qn("w:tr")):
-        for tc in tr.findall(qn("w:tc")):
-            tcPr = tc.find(qn("w:tcPr"))
-            if tcPr is None:
-                continue
-            tcW = tcPr.find(qn("w:tcW"))
-            if tcW is not None and tcW.get(qn("w:type"), "dxa") == "dxa":
-                w = int(tcW.get(qn("w:w"), 0))
-                tcW.set(qn("w:w"), str(max(1, round(w * scale))))
+        for col, new_w in zip(gridCols, new_widths):
+            col.set(qn("w:w"), str(new_w))
 
-    # Устанавливаем ширину таблицы = 100% текстовой области (AutoFit to Window)
+        # Масштабируем ширины ячеек
+        for tr in tbl_element.findall(qn("w:tr")):
+            for tc in tr.findall(qn("w:tc")):
+                tcPr = tc.find(qn("w:tcPr"))
+                if tcPr is None:
+                    continue
+                tcW = tcPr.find(qn("w:tcW"))
+                if tcW is not None and tcW.get(qn("w:type"), "dxa") == "dxa":
+                    w = int(tcW.get(qn("w:w"), 0))
+                    tcW.set(qn("w:w"), str(max(1, round(w * scale))))
+
+    # Устанавливаем точную ширину таблицы в абсолютных единицах (twips)
     tblPr = tbl_element.find(qn("w:tblPr"))
     if tblPr is not None:
         tblW = tblPr.find(qn("w:tblW"))
         if tblW is not None:
-            tblW.set(qn("w:w"), "5000")
-            tblW.set(qn("w:type"), "pct")
+            tblW.set(qn("w:w"), str(text_width))
+            tblW.set(qn("w:type"), "dxa")
         else:
             el = OxmlElement("w:tblW")
-            el.set(qn("w:w"), "5000")
-            el.set(qn("w:type"), "pct")
+            el.set(qn("w:w"), str(text_width))
+            el.set(qn("w:type"), "dxa")
             tblPr.append(el)
 
 
