@@ -11,7 +11,7 @@
 Файл template.docx должен лежать рядом со скриптом.
 """
 
-VERSION = "2026-06-25j"   # таблица выравнивается по реальным отступам параграфов
+VERSION = "2026-06-25k"   # не сжимаем ширину таблицы — шаблон уже выровнен правильно
 
 import sys
 import re
@@ -393,10 +393,9 @@ def _scale_table_to_width(tbl_element, target_width: int, tbl_ind: int = 0):
 
 def _fix_body_order(doc):
     """
-    1. Убрать плавающее позиционирование (w:tblpPr) у таблицы данных.
-    2. Масштабировать столбцы и выровнять таблицу по ширине текста
-       с учётом отрицательных отступов параграфов (выход за поля страницы).
-    3. Переставить таблицу перед абзацем «Итого» (paras[6]), если нужно.
+    1. Убрать плавающее позиционирование (w:tblpPr), если есть.
+    2. Переставить таблицу перед абзацем «Итого» (paras[6]), если нужно.
+    Ширину таблицы НЕ меняем — шаблон уже настроен корректно.
     """
     body = doc.element.body
     all_children = list(body)
@@ -408,25 +407,9 @@ def _fix_body_order(doc):
 
     tblPr = data_tbl.find(qn("w:tblPr"))
     if tblPr is not None:
-        # Убрать плавающую позицию
         tblpPr = tblPr.find(qn("w:tblpPr"))
         if tblpPr is not None:
             tblPr.remove(tblpPr)
-
-    # Вычисляем целевую ширину таблицы с учётом отступов параграфов.
-    # Параграфы шаблона могут иметь отрицательные ind (выход за поля страницы);
-    # таблица должна совпадать с ними по ширине.
-    text_width        = _get_text_width(doc)
-    ind_left, ind_right = _read_para_indent(doc)
-    # Для отрицательных отступов: target_width > text_width (таблица шире)
-    target_width = text_width - ind_left - ind_right
-    tbl_ind      = ind_left   # отрицательный = таблица заходит в левое поле
-
-    print(f"  [таблица] text_width={text_width}  para_ind=({ind_left},{ind_right})"
-          f"  → target_width={target_width}  tblInd={tbl_ind}")
-
-    # Масштабировать столбцы и выставить tblW + tblInd
-    _scale_table_to_width(data_tbl, target_width, tbl_ind)
 
     # Переставить таблицу перед абзацем «Итого...» (paras[6])
     body_paras = [ch for ch in all_children if ch.tag.split("}")[1] == "p"]
