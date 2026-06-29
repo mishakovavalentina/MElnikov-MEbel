@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { FileText, MessageSquare, FolderOpen, CreditCard, LogOut } from "lucide-react";
+import { FileText, FolderOpen, CreditCard, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 
