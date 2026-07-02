@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/use-auth";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import CabinetLayout from "@/components/cabinet/CabinetLayout";
 import Index from "./pages/Index.tsx";
+import DesignSystem from "./pages/DesignSystem.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Login from "./pages/Login.tsx";
 import CabinetRequests from "./pages/CabinetRequests.tsx";
@@ -25,6 +26,7 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/design-system" element={<DesignSystem />} />
             <Route path="/login" element={<Login />} />
             <Route
               path="/cabinet"
