@@ -10,14 +10,15 @@ const encode = (data: Record<string, string>) =>
 const sendToTelegram = async (name: string, phone: string, comment: string) => {
   const token = import.meta.env.VITE_TELEGRAM_BOT_TOKEN;
   const chatId = import.meta.env.VITE_TELEGRAM_CHAT_ID;
-  if (!token || !chatId) return;
+  if (!token || !chatId) throw new Error("Telegram is not configured");
 
   const text = `📋 Новая заявка на замер!\n\n👤 Имя: ${name}\n📞 Телефон: ${phone}${comment ? `\n💬 Комментарий: ${comment}` : ""}`;
-  await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+  const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ chat_id: chatId, text }),
   });
+  if (!res.ok) throw new Error(`Telegram API responded with ${res.status}`);
 };
 
 const ContactFormSection = () => {
@@ -33,18 +34,19 @@ const ContactFormSection = () => {
     }
     setLoading(true);
     try {
+      // Netlify Forms — резервное хранилище заявок, его сбой не считаем ошибкой отправки
       await Promise.all([
         fetch("/", {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: encode({ "form-name": "contact", ...form }),
-        }),
+        }).catch(() => undefined),
         sendToTelegram(form.name, form.phone, form.comment),
       ]);
       setSubmitted(true);
       toast.success("Заявка отправлена! Мы перезвоним в течение 30 минут.");
     } catch {
-      toast.error("Ошибка отправки. Попробуйте ещё раз.");
+      toast.error("Не удалось отправить заявку. Попробуйте ещё раз или позвоните: +7 905 771 6340");
     } finally {
       setLoading(false);
     }

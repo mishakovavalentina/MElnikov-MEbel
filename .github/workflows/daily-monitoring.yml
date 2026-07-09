@@ -1,0 +1,117 @@
+name: Daily Monitoring
+
+# Ежедневная проверка боевого сайта со сводкой в Telegram.
+# Что проверяется: доступность сайта, живость токена бота формы заявок,
+# сквозной тест (фото, контакты, отправка тестовой заявки), скорость по Lighthouse.
+# Можно запустить вручную: Actions → Daily Monitoring → Run workflow.
+
+on:
+  schedule:
+    - cron: "0 5 * * *" # 08:00 по Москве
+  workflow_dispatch:
+
+env:
+  SITE_URL: https://melnikov-mebel.netlify.app
+
+jobs:
+  monitor:
+    name: Ежедневная проверка сайта
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Установить зависимости
+        run: npm ci
+
+      - name: Установить браузер для тестов
+        run: npx playwright install --with-deps chromium
+
+      - name: Сайт открывается
+        id: availability
+        continue-on-error: true
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' -m 30 "$SITE_URL/")
+          echo "Код ответа: $code"
+          [ "$code" = "200" ]
+
+      - name: Токен бота формы заявок жив
+        id: formbot
+        continue-on-error: true
+        env:
+          FORM_BOT_TOKEN: ${{ secrets.VITE_TELEGRAM_BOT_TOKEN }}
+        run: |
+          if [ -z "$FORM_BOT_TOKEN" ]; then
+            echo "::error::Секрет VITE_TELEGRAM_BOT_TOKEN не задан"
+            exit 1
+          fi
+          ok=$(curl -sS -m 30 "https://api.telegram.org/bot${FORM_BOT_TOKEN}/getMe" | jq -r '.ok')
+          echo "getMe ok: $ok"
+          [ "$ok" = "true" ]
+
+      - name: Сквозной тест сайта (фото, контакты, форма)
+        id: e2e
+        continue-on-error: true
+        run: npx playwright test --config=monitoring/playwright.config.ts
+
+      - name: Скорость загрузки (Lighthouse)
+        id: lighthouse
+        continue-on-error: true
+        run: |
+          npx --yes lighthouse "$SITE_URL/" --quiet \
+            --only-categories=performance \
+            --chrome-flags="--headless=new --no-sandbox" \
+            --output=json --output-path=lh-report.json
+          score=$(jq -r '(.categories.performance.score // 0) * 100 | round' lh-report.json)
+          echo "score=$score" >> "$GITHUB_OUTPUT"
+          echo "Оценка скорости: $score/100 (порог: 80)"
+          [ "$score" -ge 80 ]
+
+      - name: Сохранить скриншоты упавших тестов
+        if: steps.e2e.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: monitoring-screenshots
+          path: test-results/
+          if-no-files-found: ignore
+
+      - name: Отправить сводку в Telegram
+        if: always()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          OUTCOME_AVAILABILITY: ${{ steps.availability.outcome }}
+          OUTCOME_FORMBOT: ${{ steps.formbot.outcome }}
+          OUTCOME_E2E: ${{ steps.e2e.outcome }}
+          OUTCOME_LIGHTHOUSE: ${{ steps.lighthouse.outcome }}
+          LIGHTHOUSE_SCORE: ${{ steps.lighthouse.outputs.score }}
+        run: |
+          if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then
+            echo "Секреты TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID не заданы — сводка не отправлена."
+            exit 0
+          fi
+          icon() { [ "$1" = "success" ] && echo "✅" || echo "⚠️"; }
+          TEXT="$(icon "$OUTCOME_AVAILABILITY") Сайт открывается
+          $(icon "$OUTCOME_FORMBOT") Бот формы заявок жив
+          $(icon "$OUTCOME_E2E") Фото, контакты и форма (сквозной тест)
+          $(icon "$OUTCOME_LIGHTHOUSE") Скорость загрузки: ${LIGHTHOUSE_SCORE:-?}/100"
+          if [ "$OUTCOME_AVAILABILITY" = "success" ] && [ "$OUTCOME_FORMBOT" = "success" ] \
+            && [ "$OUTCOME_E2E" = "success" ] && [ "$OUTCOME_LIGHTHOUSE" = "success" ]; then
+            TEXT="🛋 МЕбель — ежедневная проверка: всё в порядке
+          $TEXT"
+          else
+            TEXT="🛋 МЕбель — ежедневная проверка: ЕСТЬ ПРОБЛЕМЫ
+          $TEXT
+          Подробности: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          fi
+          curl -sS --fail-with-body "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=${TEXT}" \
+            --data-urlencode "disable_web_page_preview=true"
