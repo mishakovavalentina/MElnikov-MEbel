@@ -1,0 +1,50 @@
+name: Telegram Check
+
+# Проверка связи с ботом уведомлений: запускается вручную (Actions → Telegram Check → Run workflow).
+# Если секрет TELEGRAM_CHAT_ID ещё не задан, workflow сам находит chat_id через getUpdates
+# (для этого нужно заранее написать боту любое сообщение, например /start)
+# и выводит его в summary запуска, после чего отправляет тестовое сообщение.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ping:
+    name: Найти chat_id и отправить тестовое сообщение
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Проверка связи с ботом
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$TELEGRAM_BOT_TOKEN" ]; then
+            echo "::error::Секрет TELEGRAM_BOT_TOKEN не задан. Добавьте его: Settings → Secrets and variables → Actions → New repository secret."
+            exit 1
+          fi
+
+          CHAT_ID="$TELEGRAM_CHAT_ID"
+
+          if [ -z "$CHAT_ID" ]; then
+            echo "Секрет TELEGRAM_CHAT_ID не задан — ищу chat_id через getUpdates..."
+            CHAT_ID=$(curl -sS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates" \
+              | jq -r '[.result[] | (.message // .my_chat_member // empty) | .chat.id] | last // empty')
+            if [ -z "$CHAT_ID" ]; then
+              echo "::error::Не удалось определить chat_id: список обновлений пуст. Напишите боту любое сообщение (например /start) и перезапустите этот workflow."
+              exit 1
+            fi
+            echo "Найден chat_id: ${CHAT_ID}"
+            {
+              echo "## Найден chat_id: \`${CHAT_ID}\`"
+              echo ""
+              echo "Сохраните его в секрет \`TELEGRAM_CHAT_ID\` (Settings → Secrets and variables → Actions), чтобы уведомления о сбоях CI работали автоматически."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          curl -sS --fail-with-body "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${CHAT_ID}" \
+            --data-urlencode "text=✅ Бот на связи! Уведомления о сбоях CI для ${GITHUB_REPOSITORY} настроены."
+          echo "Тестовое сообщение отправлено."

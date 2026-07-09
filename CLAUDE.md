@@ -125,6 +125,11 @@
 - `VITE_TELEGRAM_BOT_TOKEN` — токен Telegram-бота (используется в `ContactFormSection.tsx`)
 - `VITE_TELEGRAM_CHAT_ID` — ID чата Telegram (используется в `ContactFormSection.tsx`)
 
+Секреты GitHub Actions (только CI, в клиентский код не попадают):
+
+- `TELEGRAM_BOT_TOKEN` — токен бота уведомлений о сбоях CI (см. `docs/telegram-notifications.md`)
+- `TELEGRAM_CHAT_ID` — ID чата для уведомлений о сбоях CI
+
 ## 6. Что Claude должен знать о проекте
 
 - Это одностраничный сайт (SPA) с единственным маршрутом `/` и страницей 404
