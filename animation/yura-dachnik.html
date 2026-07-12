@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Юра-дачник</title>
+<style>
+  html,body{margin:0;height:100%;background:#101519;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  svg{width:100vw;height:100vh;display:block}
+  #replay{position:fixed;top:14px;right:16px;z-index:5;font:600 14px/1 system-ui,sans-serif;color:#fff;
+    background:rgba(30,40,50,.55);border:1px solid rgba(255,255,255,.35);border-radius:20px;padding:8px 16px;cursor:pointer}
+  #replay:hover{background:rgba(30,40,50,.85)}
+</style>
+</head>
+<body>
+<button id="replay">▶ Сначала</button>
+<svg id="film" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" font-family="Arial, sans-serif">
+<defs>
+  <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#79B3DE"/>
+    <stop offset="1" stop-color="#C8E3F4"/>
+  </linearGradient>
+  <pattern id="plaid" width="22" height="22" patternUnits="userSpaceOnUse">
+    <rect width="22" height="22" fill="#EAD98F"/>
+    <rect y="8" width="22" height="5" fill="#C9A55A" opacity=".8"/>
+    <rect x="8" width="5" height="22" fill="#9AA45A" opacity=".7"/>
+  </pattern>
+  <g id="cloud">
+    <circle cx="0" cy="0" r="34" fill="#FFFFFF"/>
+    <circle cx="34" cy="10" r="26" fill="#FFFFFF"/>
+    <circle cx="-34" cy="12" r="24" fill="#FFFFFF"/>
+    <circle cx="8" cy="18" r="28" fill="#F2F8FC"/>
+  </g>
+  <!-- ряд кустов на горизонте -->
+  <path id="bushes" d="M0,462 Q60,345 120,462 Q180,380 240,462 Q300,340 360,462 Q420,385 480,462
+    Q540,348 600,462 Q660,382 720,462 Q780,342 840,462 Q900,386 960,462 Q1020,346 1080,462
+    Q1140,380 1200,462 Q1260,344 1320,462 Q1380,384 1440,462 Q1500,350 1560,462 Q1620,382 1680,462
+    Q1740,346 1800,462 Q1860,388 1920,462 Z" fill="#4C8A4C"/>
+  <clipPath id="gableClip"><path d="M560,630 L740,362 L920,630 Z"/></clipPath>
+  <!-- клип «над водой»: всё, что ниже глади (y>850), не рисуется — ноги не «лагают» -->
+  <clipPath id="waterClip"><rect x="880" y="380" width="540" height="470"/></clipPath>
+</defs>
+
+<!-- фон общий -->
+<rect width="1920" height="1080" fill="url(#sky)"/>
+<rect y="460" width="1920" height="620" fill="#85BB4F"/>
+<use href="#bushes"/>
+<g>
+  <use href="#cloud" x="330" y="150">
+    <animateTransform attributeName="transform" type="translate" values="0 0;40 0;0 0" dur="16s" repeatCount="indefinite"/>
+  </use>
+  <use href="#cloud" x="920" y="95" transform="scale(.8)">
+    <animateTransform attributeName="transform" type="translate" values="0 0;-50 0;0 0" dur="20s" repeatCount="indefinite" additive="sum"/>
+  </use>
+  <use href="#cloud" x="1520" y="170">
+    <animateTransform attributeName="transform" type="translate" values="0 0;30 0;0 0" dur="14s" repeatCount="indefinite"/>
+  </use>
+</g>
+
+<!-- ============ СЦЕНА А: ПРУД ============ -->
+<g id="scA">
+  <animate attributeName="opacity" values="1;0" begin="6.9s" dur="0.5s" fill="freeze"/>
+  <!-- пруд -->
+  <ellipse cx="1000" cy="800" rx="640" ry="200" fill="#6E9271"/>
+  <ellipse cx="1000" cy="800" rx="640" ry="200" fill="none" stroke="#5F8263" stroke-width="6" opacity=".5"/>
+  <!-- кувшинки -->
+  <ellipse cx="620" cy="850" rx="60" ry="20" fill="#93B96A"/>
+  <ellipse cx="830" cy="890" rx="46" ry="15" fill="#8DB463"/>
+  <ellipse cx="1280" cy="905" rx="70" ry="22" fill="#93B96A"/>
+  <ellipse cx="1390" cy="860" rx="50" ry="16" fill="#8DB463"/>
+  <ellipse cx="960" cy="945" rx="55" ry="17" fill="#8DB463"/>
+  <!-- травка в воде -->
+  <g stroke="#5E7F52" stroke-width="4" stroke-linecap="round" fill="none">
+    <path d="M700,905 l6,-14 M712,905 l6,-14 M724,905 l6,-14 M736,905 l6,-14"/>
+    <path d="M1440,930 l6,-14 M1452,930 l6,-14 M1464,930 l6,-14"/>
+  </g>
+  <!-- рогоз слева и справа -->
+  <g stroke-linecap="round">
+    <g stroke="#6B8F3E" stroke-width="6" fill="none">
+      <path d="M285,905 V790"/><path d="M330,915 V810"/>
+      <path d="M285,850 q-28,-16 -36,-46"/><path d="M330,870 q26,-18 32,-48"/>
+      <path d="M1585,905 V785"/><path d="M1630,915 V815"/>
+      <path d="M1585,845 q-26,-18 -32,-48"/><path d="M1630,875 q26,-18 34,-44"/>
+    </g>
+    <g fill="#7A3B2E">
+      <rect x="276" y="735" width="18" height="58" rx="9"/>
+      <rect x="321" y="760" width="18" height="52" rx="9"/>
+      <rect x="1576" y="730" width="18" height="58" rx="9"/>
+      <rect x="1621" y="765" width="18" height="52" rx="9"/>
+    </g>
+  </g>
+  <!-- лягушка -->
+  <g id="frog" transform="translate(620,838)">
+    <animateTransform attributeName="transform" type="translate" values="620 838;620 818;620 838" begin="5.05s" dur="0.4s" calcMode="spline" keySplines="0.3 0 0.4 1;0.4 0 0.7 1" fill="freeze"/>
+    <ellipse cx="0" cy="-8" rx="20" ry="12" fill="#6FA84C"/>
+    <circle cx="-12" cy="-20" r="6" fill="#6FA84C"/><circle cx="10" cy="-20" r="6" fill="#6FA84C"/>
+    <circle cx="-12" cy="-21" r="2.4" fill="#26331D"/><circle cx="10" cy="-21" r="2.4" fill="#26331D"/>
+  </g>
+  <!-- стрекоза -->
+  <g id="dragonfly" opacity="0.9">
+    <animateMotion path="M250,240 q220,80 420,30 q240,-60 460,40 q220,90 470,50" begin="0.2s" dur="6.6s" fill="freeze"/>
+    <ellipse cx="0" cy="0" rx="16" ry="3.4" fill="#4A7FB5"/>
+    <circle cx="-16" cy="0" r="4.5" fill="#3B6D9E"/>
+    <g fill="#BFDFF2" opacity=".85">
+      <ellipse cx="-4" cy="-8" rx="4" ry="10">
+        <animate attributeName="ry" values="10;3;10" dur="0.12s" repeatCount="indefinite"/>
+      </ellipse>
+      <ellipse cx="4" cy="-8" rx="4" ry="10">
+        <animate attributeName="ry" values="3;10;3" dur="0.12s" repeatCount="indefinite"/>
+      </ellipse>
+    </g>
+  </g>
+  <!-- заставка -->
+  <text id="title" x="960" y="360" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif"
+        font-size="118" font-weight="bold" fill="#2E6B34" stroke="#FFFFFF" stroke-width="10"
+        paint-order="stroke" letter-spacing="4" opacity="0">ЮРА-ДАЧНИК
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.22;0.78;1" begin="0.3s" dur="2.6s" fill="freeze"/>
+  </text>
+  <!-- табличка СНТ -->
+  <g id="sign" transform="translate(300,0)" opacity="0">
+    <animate attributeName="opacity" values="0;1" begin="2.5s" dur="0.15s" fill="freeze"/>
+    <animateTransform attributeName="transform" type="scale" values="0.2;1.08;1" begin="2.5s" dur="0.45s"
+      calcMode="spline" keySplines="0.3 1.4 0.6 1;0.3 0 0.6 1" additive="sum" fill="freeze"/>
+    <rect x="-6" y="655" width="12" height="140" fill="#7A5230"/>
+    <rect x="-110" y="560" width="220" height="44" rx="6" fill="#B0592F" stroke="#8A4322" stroke-width="3"/>
+    <text x="0" y="591" text-anchor="middle" font-size="26" font-weight="bold" fill="#FFF">ЕГОРЬЕВСК</text>
+    <rect x="-100" y="610" width="200" height="66" rx="6" fill="#2E5FA3" stroke="#224A82" stroke-width="3"/>
+    <text x="0" y="638" text-anchor="middle" font-size="24" font-weight="bold" fill="#FFF">СНТ</text>
+    <text x="0" y="666" text-anchor="middle" font-size="22" font-weight="bold" fill="#FFF">«Взлёт 2»</text>
+  </g>
+
+  <!-- Юра в гидрокостюме: заходит, ныряет -->
+  <g id="diver" transform="translate(2010,930)">
+    <animateTransform attributeName="transform" type="translate" values="0 0;-280 0" begin="3.0s" dur="1.15s" additive="sum" fill="freeze"/>
+    <animateTransform attributeName="transform" type="translate" values="0 0;-190 -150;-450 -70;-580 -20" keyTimes="0;0.4;0.8;1"
+      begin="4.25s" dur="0.6s" calcMode="spline" keySplines="0.3 0 0.6 1;0.4 0 0.7 1;0.4 0 0.8 1" additive="sum" fill="freeze"/>
+    <animate attributeName="opacity" values="1;0" begin="4.83s" dur="0.06s" fill="freeze"/>
+    <g id="diverPose">
+      <animateTransform attributeName="transform" type="rotate" values="0 0 -90;-55 0 -90;-102 0 -90" keyTimes="0;0.45;1" begin="4.25s" dur="0.6s" fill="freeze"/>
+      <g transform="scale(-1,1)">
+      <!-- ноги: прямые, качаются только от бедра -->
+      <g>
+        <animateTransform attributeName="transform" type="rotate" values="-14 -6 -90;14 -6 -90;-14 -6 -90" begin="3.0s" dur="0.38s" repeatCount="3" fill="remove"/>
+        <rect x="-22" y="-92" width="22" height="82" rx="8" fill="#22252A"/>
+        <rect x="-26" y="-13" width="30" height="13" rx="5" fill="#15171B"/>
+      </g>
+      <g>
+        <animateTransform attributeName="transform" type="rotate" values="14 6 -90;-14 6 -90;14 6 -90" begin="3.0s" dur="0.38s" repeatCount="3" fill="remove"/>
+        <rect x="0" y="-92" width="22" height="82" rx="8" fill="#2A2E34"/>
+        <rect x="-4" y="-13" width="30" height="13" rx="5" fill="#1B1E23"/>
+      </g>
+      <rect x="-24" y="-104" width="48" height="24" rx="9" fill="#22252A"/>
+      <!-- торс -->
+      <rect x="-24" y="-170" width="48" height="76" rx="12" fill="#26292F"/>
+      <!-- руки: перед нырком поднимаются вперёд -->
+      <g>
+        <animateTransform attributeName="transform" type="rotate" values="0 -14 -160;-95 -14 -160" begin="4.1s" dur="0.25s" fill="freeze"/>
+        <rect x="-21" y="-162" width="13" height="60" rx="6.5" fill="#1E2126"/>
+      </g>
+      <g>
+        <animateTransform attributeName="transform" type="rotate" values="0 16 -160;-95 16 -160" begin="4.05s" dur="0.25s" fill="freeze"/>
+        <rect x="9" y="-162" width="13" height="60" rx="6.5" fill="#2A2E34"/>
+      </g>
+      <!-- голова в капюшоне, маска, трубка -->
+      <circle cx="4" cy="-196" r="25" fill="#22252A"/>
+      <path d="M9,-214 a22,22 0 0 1 18,26 l-14,4 Z" fill="#F0C29A"/>
+      <circle cx="17" cy="-198" r="9" fill="#DDEBF4" stroke="#4A4E55" stroke-width="3.5"/>
+      <path d="M8,-206 q-14,-4 -22,2" stroke="#4A4E55" stroke-width="3.5" fill="none"/>
+      <path d="M-4,-218 q-8,20 2,36" stroke="#5A6068" stroke-width="6" fill="none" stroke-linecap="round"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- всплеск -->
+  <g transform="translate(1150,845)">
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1;0" begin="4.78s" dur="0.55s" fill="freeze"/>
+      <g stroke="#F2F8FB" stroke-width="9" stroke-linecap="round" fill="none">
+        <path d="M0,-6 V-52"/><path d="M-26,0 L-52,-38"/><path d="M26,0 L52,-38"/>
+        <path d="M-44,6 L-70,-8"/><path d="M44,6 L70,-8"/>
+      </g>
+      <animateTransform attributeName="transform" type="scale" values="0.3;1.25" begin="4.78s" dur="0.55s" fill="freeze"/>
+    </g>
+  </g>
+  <!-- круги на воде после нырка -->
+  <g fill="none" stroke="#EAF3EE" stroke-width="5">
+    <ellipse cx="1150" cy="850" rx="8" ry="3" opacity="0">
+      <animate attributeName="opacity" values="0;0.9;0" begin="4.9s" dur="1.1s" fill="freeze"/>
+      <animate attributeName="rx" values="10;120" begin="4.9s" dur="1.1s" fill="freeze"/>
+      <animate attributeName="ry" values="3.5;38" begin="4.9s" dur="1.1s" fill="freeze"/>
+    </ellipse>
+    <ellipse cx="1150" cy="850" rx="8" ry="3" opacity="0">
+      <animate attributeName="opacity" values="0;0.8;0" begin="5.15s" dur="1.1s" fill="freeze"/>
+      <animate attributeName="rx" values="10;95" begin="5.15s" dur="1.1s" fill="freeze"/>
+      <animate attributeName="ry" values="3.5;30" begin="5.15s" dur="1.1s" fill="freeze"/>
+    </ellipse>
+  </g>
+
+  <!-- выныривание: тело поднимается из воды, всё ниже глади скрыто клипом -->
+  <g clip-path="url(#waterClip)">
+    <g id="surfacer" transform="translate(1150,1160)">
+      <animateTransform attributeName="transform" type="translate" values="0 0;0 -324;0 -310" keyTimes="0;0.75;1"
+        begin="5.85s" dur="0.75s" calcMode="spline" keySplines="0.25 0 0.35 1;0.4 0 0.6 1" additive="sum" fill="freeze"/>
+      <!-- торс в гидрокостюме (пояс на глади, ноги под водой и не рисуются) -->
+      <rect x="-26" y="-96" width="52" height="100" rx="14" fill="#26292F"/>
+      <!-- руки подняты вверх, держат рыбу -->
+      <rect x="-34" y="-160" width="14" height="80" rx="7" fill="#1E2126" transform="rotate(8 -27 -82)"/>
+      <rect x="20" y="-160" width="14" height="80" rx="7" fill="#2A2E34" transform="rotate(-8 27 -82)"/>
+      <circle cx="-30" cy="-158" r="8" fill="#F0C29A"/>
+      <circle cx="30" cy="-158" r="8" fill="#F0C29A"/>
+      <!-- голова: маска сдвинута на лоб, довольная улыбка -->
+      <circle cx="0" cy="-122" r="24" fill="#22252A"/>
+      <path d="M-9,-134 a22,22 0 0 1 22,12 l-4,16 q-12,4 -20,-2 Z" fill="#F0C29A"/>
+      <circle cx="2" cy="-142" r="8" fill="#DDEBF4" stroke="#4A4E55" stroke-width="3"/>
+      <circle cx="4" cy="-122" r="2.6" fill="#26241F"/>
+      <path d="M-2,-112 q6,5 12,0" stroke="#26241F" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <!-- карп над головой -->
+      <g id="fish" transform="translate(0,-196)">
+        <animateTransform attributeName="transform" type="rotate" values="0;7;-7;5;0" begin="6.7s" dur="0.9s" additive="sum" fill="freeze"/>
+        <path d="M-95,0 Q-60,-38 0,-38 Q60,-38 88,-6 Q60,30 0,34 Q-58,34 -95,0 Z" fill="#C08A4A"/>
+        <path d="M-95,0 L-130,-26 Q-118,0 -130,26 Z" fill="#9A6D33"/>
+        <path d="M-30,-34 Q-6,-58 26,-40 L-4,-30 Z" fill="#9A6D33"/>
+        <path d="M-60,26 Q-40,40 -18,32 L-40,20 Z" fill="#9A6D33"/>
+        <g fill="none" stroke="#A97B3E" stroke-width="3">
+          <path d="M-52,-12 q10,10 0,22"/><path d="M-28,-16 q10,12 0,28"/><path d="M-4,-16 q10,12 0,30"/><path d="M20,-14 q9,10 0,24"/>
+        </g>
+        <circle cx="58" cy="-8" r="8" fill="#FFF"/><circle cx="60" cy="-8" r="3.6" fill="#241F19"/>
+        <path d="M84,4 q-8,6 -16,4" stroke="#8A5F2A" stroke-width="3" fill="none"/>
+        <path d="M88,-2 l18,-4 M88,2 l18,6" stroke="#8A5F2A" stroke-width="2.6"/>
+      </g>
+    </g>
+  </g>
+  <!-- круги при выныривании -->
+  <g fill="none" stroke="#EAF3EE" stroke-width="5">
+    <ellipse cx="1150" cy="852" rx="8" ry="3" opacity="0">
+      <animate attributeName="opacity" values="0;0.9;0" begin="5.95s" dur="1.0s" fill="freeze"/>
+      <animate attributeName="rx" values="12;115" begin="5.95s" dur="1.0s" fill="freeze"/>
+      <animate attributeName="ry" values="4;36" begin="5.95s" dur="1.0s" fill="freeze"/>
+    </ellipse>
+    <ellipse cx="1150" cy="852" rx="8" ry="3" opacity="0">
+      <animate attributeName="opacity" values="0;0.8;0" begin="6.25s" dur="1.0s" fill="freeze"/>
+      <animate attributeName="rx" values="12;85" begin="6.25s" dur="1.0s" fill="freeze"/>
+      <animate attributeName="ry" values="4;27" begin="6.25s" dur="1.0s" fill="freeze"/>
+    </ellipse>
+  </g>
+  <!-- брызги-капли -->
+  <g fill="#EAF4F9">
+    <circle r="6" opacity="0">
+      <animate attributeName="opacity" values="0;1;0" begin="6.0s" dur="0.55s" fill="freeze"/>
+      <animateMotion path="M1100,760 q-40,-60 -70,-10" begin="6.0s" dur="0.55s" fill="freeze"/>
+    </circle>
+    <circle r="5" opacity="0">
+      <animate attributeName="opacity" values="0;1;0" begin="6.05s" dur="0.5s" fill="freeze"/>
+      <animateMotion path="M1205,755 q40,-55 66,-6" begin="6.05s" dur="0.5s" fill="freeze"/>
+    </circle>
+    <circle r="4" opacity="0">
+      <animate attributeName="opacity" values="0;1;0" begin="6.1s" dur="0.5s" fill="freeze"/>
+      <animateMotion path="M1150,720 q6,-50 34,-30" begin="6.1s" dur="0.5s" fill="freeze"/>
+    </circle>
+  </g>
+</g>
+
+<!-- ============ СЦЕНА Б: СТРОЙКА, ДВОР, ФИНАЛ ============ -->
+<g id="scB" opacity="0">
+  <animate attributeName="opacity" values="0;1" begin="6.9s" dur="0.5s" fill="freeze"/>
+
+  <!-- прудик в левом нижнем углу -->
+  <ellipse cx="70" cy="1075" rx="200" ry="65" fill="#6E9271" opacity="0">
+    <animate attributeName="opacity" values="0;1" begin="12.5s" dur="0.3s" fill="freeze"/>
+  </ellipse>
+
+  <!-- ДОМ -->
+  <g id="house">
+    <!-- фундамент -->
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1" begin="7.6s" dur="0.12s" fill="freeze"/>
+      <animateTransform attributeName="transform" type="translate" values="0 26;0 0" begin="7.6s" dur="0.3s" calcMode="spline" keySplines="0.3 1.3 0.6 1" fill="freeze"/>
+      <rect x="470" y="890" width="540" height="40" fill="#8A8A8A"/>
+      <path d="M580,890 v40 M690,890 v40 M800,890 v40 M910,890 v40" stroke="#767676" stroke-width="4"/>
+    </g>
+    <!-- брёвна стены (6 рядов снизу вверх) -->
+    <g>
+      <g opacity="0"><animate attributeName="opacity" values="0;1" begin="7.95s" dur="0.1s" fill="freeze"/>
+        <animateTransform attributeName="transform" type="translate" values="0 30;0 0" begin="7.95s" dur="0.28s" calcMode="spline" keySplines="0.3 1.3 0.6 1" fill="freeze"/>
+        <rect x="480" y="847" width="520" height="43" fill="#5B3A2C"/><rect x="480" y="885" width="520" height="5" fill="#4A2E23"/></g>
+      <g opacity="0"><animate attributeName="opacity" values="0;1" begin="8.37s" dur="0.1s" fill="freeze"/>
+        <animateTransform attributeName="transform" type="translate" values="0 30;0 0" begin="8.37s" dur="0.28s" calcMode="spline" keySplines="0.3 1.3 0.6 1" fill="freeze"/>
+        <rect x="480" y="804" width="520" height="43" fill="#5F3D2E"/><rect x="480" y="842" width="520" height="5" fill="#4A2E23"/></g>
+      <g opacity="0"><animate attributeName="opacity" values="0;1" begin="8.79s" dur="0.1s" fill="freeze"/>
+        <animateTransform attributeName="transform" type="translate" values="0 30;0 0" begin="8.79s" dur="0.28s" calcMode="spline" keySplines="0.3 1.3 0.6 1" fill="freeze"/>
+        <rect x="480" y="761" width="520" height="43" fill="#5B3A2C"/><rect x="480" y="799" width="520" height="5" fill="#4A2E23"/></g>
+      <g opacity="0"><animate attributeName="opacity" values="0;1" begin="9.21s" dur="0.1s" fill="freeze"/>
+        <animateTransform attributeName="transform" type="translate" values="0 30;0 0" begin="9.21s" dur="0.28s" calcMode="spline" keySplines="0.3 1.3 0.6 1" fill="freeze"/>
+        <rect x="480" y="718" width="520" height="43" fill="#5F3D2E"/><rect x="480" y="756" width="520" height="5" fill="#4A2E23"/></g>
+      <g opacity="0"><animate attributeName="opacity" values="0;1" begin="9.63s" dur="0.1s" fill="freeze"/>
+        <animateTransform attributeName="transform" type="translate" values="0 30;0 0" begin="9.63s" dur="0.28s" calcMode="spline" keySplines="0.3 1.3 0.6 1" fill="freeze"/>
+        <rect x="480" y="675" width="520" height="43" fill="#5B3A2C"/><rect x="480" y="713" width="520" height="5" fill="#4A2E23"/></g>
+      <g opacity="0"><animate attributeName="opacity" values="0;1" begin="10.05s" dur="0.1s" fill="freeze"/>
+        <animateTransform attributeName="transform" type="translate" values="0 30;0 0" begin="10.05s" dur="0.28s" calcMode="spline" keySplines="0.3 1.3 0.6 1" fill="freeze"/>
+        <rect x="480" y="630" width="520" height="45" fill="#5F3D2E"/><rect x="480" y="670" width="520" height="5" fill="#4A2E23"/></g>
+    </g>
+    <!-- дверь -->
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1" begin="10.3s" dur="0.12s" fill="freeze"/>
+      <animateTransform attributeName="transform" type="scale" values="0.6;1.06;1" begin="10.3s" dur="0.35s" calcMode="spline" keySplines="0.3 1.3 0.6 1;0.3 0 0.6 1" additive="sum" fill="freeze"/>
+      <rect x="518" y="742" width="76" height="148" rx="6" fill="#F3EDE4"/>
+      <rect x="526" y="750" width="60" height="140" rx="4" fill="#7A4A28"/>
+      <circle cx="576" cy="822" r="4.5" fill="#E8C97A"/>
+    </g>
+    <!-- окна 1 этажа -->
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1" begin="10.5s" dur="0.12s" fill="freeze"/>
+      <animateTransform attributeName="transform" type="scale" values="0.6;1.06;1" begin="10.5s" dur="0.35s" calcMode="spline" keySplines="0.3 1.3 0.6 1;0.3 0 0.6 1" additive="sum" fill="freeze"/>
+      <path d="M648,830 v-92 q0,-26 26,-26 q26,0 26,26 v92 Z" fill="#F3EDE4"/>
+      <path d="M656,822 v-82 q0,-19 18,-19 q18,0 18,19 v82 Z" fill="#C9E2F0"/>
+      <path d="M674,740 v82 M656,780 h36" stroke="#F3EDE4" stroke-width="5"/>
+    </g>
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1" begin="10.7s" dur="0.12s" fill="freeze"/>
+      <animateTransform attributeName="transform" type="scale" values="0.6;1.06;1" begin="10.7s" dur="0.35s" calcMode="spline" keySplines="0.3 1.3 0.6 1;0.3 0 0.6 1" additive="sum" fill="freeze"/>
+      <path d="M818,830 v-92 q0,-26 26,-26 q26,0 26,26 v92 Z" fill="#F3EDE4"/>
+      <path d="M826,822 v-82 q0,-19 18,-19 q18,0 18,19 v82 Z" fill="#C9E2F0"/>
+      <path d="M844,740 v82 M826,780 h36" stroke="#F3EDE4" stroke-width="5"/>
+    </g>
+    <!-- резной подзор по верху стены -->
+    <line x1="486" y1="632" x2="996" y2="632" stroke="#F3EDE4" stroke-width="17" stroke-linecap="round" stroke-dasharray="0.1 26" opacity="0">
+      <animate attributeName="opacity" values="0;1" begin="11.15s" dur="0.25s" fill="freeze"/>
+    </line>
+    <!-- фронтон со вторым этажом -->
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1" begin="10.55s" dur="0.2s" fill="freeze"/>
+      <animateTransform attributeName="transform" type="translate" values="0 60;0 0" begin="10.55s" dur="0.5s" calcMode="spline" keySplines="0.25 1.2 0.5 1" fill="freeze"/>
+      <g clip-path="url(#gableClip)">
+        <rect x="560" y="362" width="360" height="268" fill="#5B3A2C"/>
+        <path d="M560,585 h360 M560,540 h360 M560,495 h360 M560,450 h360 M560,405 h360" stroke="#4A2E23" stroke-width="5"/>
+      </g>
+      <!-- окно мансарды -->
+      <path d="M700,600 v-80 q0,-24 20,-24 q10,0 14,8 q4,-8 14,-8 q20,0 20,24 v80 Z" fill="#F3EDE4"/>
+      <path d="M708,592 v-72 q0,-16 12,-16 q8,0 12,7 v81 Z" fill="#C9E2F0"/>
+      <path d="M740,592 v-81 q4,-7 12,-7 q12,0 12,16 v72 Z" fill="#C9E2F0"/>
+      <circle cx="740" cy="472" r="9" fill="#F3EDE4"/><circle cx="740" cy="472" r="4" fill="#5B3A2C"/>
+    </g>
+    <!-- скаты крыши -->
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1" begin="11.0s" dur="0.25s" fill="freeze"/>
+      <path d="M526,652 L740,336 L954,652" fill="none" stroke="#3A2A22" stroke-width="30" stroke-linecap="round"/>
+      <line x1="548" y1="648" x2="736" y2="370" stroke="#F3EDE4" stroke-width="13" stroke-linecap="round" stroke-dasharray="0.1 22"/>
+      <line x1="744" y1="370" x2="932" y2="648" stroke="#F3EDE4" stroke-width="13" stroke-linecap="round" stroke-dasharray="0.1 22"/>
+    </g>
+    <!-- конёк: небольшая площадка на самом верху -->
+    <rect id="ridgecap" x="690" y="330" width="100" height="16" rx="5" fill="#33241E" opacity="0">
+      <animate attributeName="opacity" values="0;1" begin="11.25s" dur="0.2s" fill="freeze"/>
+    </rect>
+    <!-- труба на правом скате -->
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1" begin="11.3s" dur="0.15s" fill="freeze"/>
+      <animateTransform attributeName="transform" type="translate" values="0 30;0 0" begin="11.3s" dur="0.3s" calcMode="spline" keySplines="0.3 1.3 0.6 1" fill="freeze"/>
+      <rect x="822" y="428" width="32" height="88" rx="8" fill="#9A948E"/>
+      <rect x="818" y="422" width="40" height="12" rx="5" fill="#7E7973"/>
+    </g>
+    <!-- антенна на коньке -->
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1" begin="11.5s" dur="0.12s" fill="freeze"/>
+      <animateTransform attributeName="transform" type="translate" values="0 45;0 0" begin="11.5s" dur="0.35s" calcMode="spline" keySplines="0.3 1.2 0.6 1" additive="sum" fill="freeze"/>
+      <g transform="translate(714,330)" stroke="#4A4A4A" stroke-width="6" fill="none">
+        <path d="M0,0 V-150"/>
+        <path d="M-48,-144 H48 M-36,-122 H36 M-24,-100 H24"/>
+        <path d="M-32,-144 L0,-122 L32,-144 M-24,-122 L0,-100 L24,-122"/>
+      </g>
+    </g>
+    <!-- номер дома -->
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1" begin="11.65s" dur="0.2s" fill="freeze"/>
+      <rect x="936" y="760" width="46" height="40" rx="6" fill="#F3EDE4" stroke="#5B3A2C" stroke-width="3"/>
+      <text x="959" y="789" text-anchor="middle" font-size="28" font-weight="bold" fill="#4A2E23">35</text>
+    </g>
+  </g>
+
+  <!-- пыль от ударов у левой кромки стены -->
+  <g fill="#FFFFFF">
+    <circle cx="474" cy="866" r="8" opacity="0"><animate attributeName="opacity" values="0;0.85;0" begin="8.16s" dur="0.4s" fill="freeze"/><animate attributeName="r" values="6;26" begin="8.16s" dur="0.4s" fill="freeze"/></circle>
+    <circle cx="474" cy="824" r="8" opacity="0"><animate attributeName="opacity" values="0;0.85;0" begin="8.58s" dur="0.4s" fill="freeze"/><animate attributeName="r" values="6;26" begin="8.58s" dur="0.4s" fill="freeze"/></circle>
+    <circle cx="474" cy="781" r="8" opacity="0"><animate attributeName="opacity" values="0;0.85;0" begin="9.0s" dur="0.4s" fill="freeze"/><animate attributeName="r" values="6;26" begin="9.0s" dur="0.4s" fill="freeze"/></circle>
+    <circle cx="474" cy="738" r="8" opacity="0"><animate attributeName="opacity" values="0;0.85;0" begin="9.42s" dur="0.4s" fill="freeze"/><animate attributeName="r" values="6;26" begin="9.42s" dur="0.4s" fill="freeze"/></circle>
+    <circle cx="474" cy="695" r="8" opacity="0"><animate attributeName="opacity" values="0;0.85;0" begin="9.84s" dur="0.4s" fill="freeze"/><animate attributeName="r" values="6;26" begin="9.84s" dur="0.4s" fill="freeze"/></circle>
+    <circle cx="474" cy="652" r="8" opacity="0"><animate attributeName="opacity" values="0;0.85;0" begin="10.26s" dur="0.4s" fill="freeze"/><animate attributeName="r" values="6;26" begin="10.26s" dur="0.4s" fill="freeze"/></circle>
+  </g>
+
+  <!-- ЮРА-СТРОИТЕЛЬ: слева от стены, лицом к ней, молоток в ПРАВОЙ (ближней) руке, бьёт в сторону стены -->
+  <g id="builder" transform="translate(396,930)" opacity="0">
+    <animate attributeName="opacity" values="0;1" begin="7.4s" dur="0.3s" fill="freeze"/>
+    <animate attributeName="opacity" values="1;0" begin="11.3s" dur="0.3s" fill="freeze"/>
+    <!-- широкие прямые брюки -->
+    <rect x="-36" y="-96" width="72" height="30" rx="9" fill="#5E7A45"/>
+    <rect x="-36" y="-90" width="32" height="80" rx="9" fill="#5E7A45"/>
+    <rect x="4" y="-90" width="32" height="80" rx="9" fill="#66854C"/>
+    <rect x="-40" y="-14" width="38" height="14" rx="5" fill="#4A342A"/>
+    <rect x="2" y="-14" width="38" height="14" rx="5" fill="#54413A"/>
+    <!-- дальняя (левая) рука придерживает бревно -->
+    <g>
+      <animateTransform attributeName="transform" type="rotate" values="-58 -18 -158;-58 -18 -158" begin="7.4s" dur="0.1s" fill="freeze"/>
+      <rect x="-25" y="-160" width="14" height="62" rx="7" fill="#D8C87F"/>
+      <circle cx="-18" cy="-96" r="8" fill="#F0C29A"/>
+    </g>
+    <!-- торс: клетчатая рубашка + жилет -->
+    <rect x="-30" y="-172" width="60" height="82" rx="11" fill="url(#plaid)"/>
+    <path d="M-30,-172 h18 v82 h-18 Z M12,-172 h18 v82 h-18 Z" fill="#59653C"/>
+    <!-- голова -->
+    <g>
+      <circle cx="6" cy="-196" r="26" fill="#F0C29A"/>
+      <path d="M6,-222 a26,26 0 0 1 24,16 l-6,3 q-8,-10 -18,-10 l-14,-2 a26,26 0 0 1 -12,10 l-6,-3 a26,26 0 0 1 32,-14 Z" fill="#C9C9C6"/>
+      <path d="M-20,-200 a26,26 0 0 0 2,14 l6,-2 Z" fill="#C9C9C6"/>
+      <path d="M32,-196 l10,4 -10,5 Z" fill="#E8B489"/>
+      <circle cx="18" cy="-200" r="3" fill="#26241F"/>
+      <path d="M12,-184 q7,5 14,-1" stroke="#26241F" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    </g>
+    <!-- ПРАВАЯ (ближняя) рука с молотком: замах вверх → удар вперёд-вниз к стене -->
+    <g>
+      <animateTransform attributeName="transform" type="rotate"
+        values="-165 20 -158;-165 20 -158;-78 20 -158;-78 20 -158;-165 20 -158" keyTimes="0;0.08;0.5;0.62;1"
+        calcMode="spline" keySplines="0.4 0 0.6 1;0.5 0 0.75 0.6;0.3 0 0.6 1;0.35 0 0.5 1"
+        begin="7.9s" dur="0.42s" repeatCount="7" fill="freeze"/>
+      <rect x="13" y="-160" width="14" height="62" rx="7" fill="#EAD98F"/>
+      <circle cx="20" cy="-96" r="8.5" fill="#F0C29A"/>
+      <rect x="15" y="-92" width="10" height="48" rx="4" fill="#8A5A32"/>
+      <rect x="2" y="-52" width="36" height="16" rx="4" fill="#555B61"/>
+    </g>
+  </g>
+
+  <!-- ЮРА НА КРЫШЕ (триумф после стройки): стоит на горизонтальном участке кровли слева -->
+  <g id="roofYura" transform="translate(524,630)" opacity="0">
+    <animate attributeName="opacity" values="0;1" begin="11.7s" dur="0.25s" fill="freeze"/>
+    <animate attributeName="opacity" values="1;0" begin="13.05s" dur="0.25s" fill="freeze"/>
+    <rect x="-46" y="-4" width="92" height="12" rx="5" fill="#3A2A22"/>
+    <rect x="-30" y="-82" width="60" height="24" rx="8" fill="#5E7A45"/>
+    <rect x="-30" y="-76" width="26" height="66" rx="8" fill="#5E7A45"/>
+    <rect x="4" y="-76" width="26" height="66" rx="8" fill="#66854C"/>
+    <rect x="-34" y="-12" width="32" height="12" rx="5" fill="#4A342A"/>
+    <rect x="2" y="-12" width="32" height="12" rx="5" fill="#54413A"/>
+    <rect x="-26" y="-146" width="52" height="70" rx="10" fill="url(#plaid)"/>
+    <path d="M-26,-146 h16 v70 h-16 Z M10,-146 h16 v70 h-16 Z" fill="#59653C"/>
+    <g>
+      <animateTransform attributeName="transform" type="rotate" values="138 -16 -134;167 -16 -134;138 -16 -134" begin="11.8s" dur="0.55s" repeatCount="4" fill="freeze"/>
+      <rect x="-22" y="-136" width="12" height="54" rx="6" fill="#D8C87F"/>
+      <circle cx="-16" cy="-80" r="7" fill="#F0C29A"/>
+    </g>
+    <g>
+      <animateTransform attributeName="transform" type="rotate" values="-138 16 -134;-167 16 -134;-138 16 -134" begin="11.8s" dur="0.55s" repeatCount="4" fill="freeze"/>
+      <rect x="10" y="-136" width="12" height="54" rx="6" fill="#EAD98F"/>
+      <circle cx="16" cy="-80" r="7" fill="#F0C29A"/>
+    </g>
+    <circle cx="2" cy="-168" r="23" fill="#F0C29A"/>
+    <path d="M2,-191 a23,23 0 0 1 21,14 l-5,3 q-7,-9 -16,-9 l-12,-2 a23,23 0 0 1 -11,9 l-5,-3 a23,23 0 0 1 28,-12 Z" fill="#C9C9C6"/>
+    <path d="M25,-168 l9,4 -9,4 Z" fill="#E8B489"/>
+    <circle cx="12" cy="-172" r="2.7" fill="#26241F"/>
+    <path d="M6,-158 q6,5 13,-1" stroke="#26241F" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- ДВОР -->
+  <g id="yard">
+    <!-- забор -->
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1" begin="12.65s" dur="0.3s" fill="freeze"/>
+      <g fill="#B0604A">
+        <rect x="60" y="835" width="12" height="58" rx="4"/><rect x="92" y="835" width="12" height="58" rx="4"/>
+        <rect x="124" y="835" width="12" height="58" rx="4"/><rect x="156" y="835" width="12" height="58" rx="4"/>
+        <rect x="188" y="835" width="12" height="58" rx="4"/><rect x="220" y="835" width="12" height="58" rx="4"/>
+        <rect x="252" y="835" width="12" height="58" rx="4"/><rect x="284" y="835" width="12" height="58" rx="4"/>
+        <rect x="316" y="835" width="12" height="58" rx="4"/>
+      </g>
+      <rect x="52" y="846" width="286" height="8" fill="#9A5240"/>
+      <rect x="52" y="872" width="286" height="8" fill="#9A5240"/>
+    </g>
+    <!-- сарайчик-шалаш -->
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1" begin="12.8s" dur="0.3s" fill="freeze"/>
+      <path d="M130,893 L205,758 L280,893 Z" fill="#4E3226"/>
+      <path d="M130,893 L205,758 L280,893" fill="none" stroke="#F3EDE4" stroke-width="7"/>
+      <rect x="190" y="812" width="30" height="81" rx="4" fill="#6B4530"/>
+      <path d="M205,780 l10,12 -10,12 -10,-12 Z" fill="#F3EDE4"/>
+    </g>
+    <!-- парник -->
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1" begin="12.95s" dur="0.3s" fill="freeze"/>
+      <path d="M310,912 Q395,822 480,912 Z" fill="#FFFFFF" opacity="0.5"/>
+      <path d="M310,912 Q395,822 480,912" fill="none" stroke="#E4E9EC" stroke-width="6"/>
+      <path d="M352,912 Q395,850 438,912 M395,867 V912" stroke="#E4E9EC" stroke-width="4" fill="none"/>
+    </g>
+    <!-- каменные ступени -->
+    <g opacity="0" fill="#9A948E" stroke="#7E7973" stroke-width="3">
+      <animate attributeName="opacity" values="0;1" begin="13.1s" dur="0.3s" fill="freeze"/>
+      <rect x="215" y="1042" width="95" height="22" rx="5"/>
+      <rect x="130" y="1020" width="95" height="22" rx="5"/>
+      <rect x="45" y="998" width="95" height="22" rx="5"/>
+    </g>
+    <!-- берёза -->
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1" begin="13.2s" dur="0.3s" fill="freeze"/>
+      <path d="M1553,893 V640 M1560,660 L1502,565 M1560,640 L1618,548" stroke="#F2F0EA" stroke-width="13" fill="none" stroke-linecap="round"/>
+      <path d="M1548,860 h12 M1550,800 h12 M1548,740 h12 M1550,690 h12" stroke="#3A3A34" stroke-width="6"/>
+      <circle cx="1500" cy="545" r="52" fill="#A9D177"/>
+      <circle cx="1620" cy="525" r="46" fill="#9CC96A"/>
+      <circle cx="1560" cy="478" r="42" fill="#A9D177"/>
+    </g>
+    <!-- дерево справа -->
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1" begin="13.3s" dur="0.3s" fill="freeze"/>
+      <rect x="1788" y="680" width="22" height="213" rx="8" fill="#7A5230"/>
+      <circle cx="1755" cy="620" r="72" fill="#7FBF6B"/>
+      <circle cx="1852" cy="606" r="64" fill="#8FCB79"/>
+      <circle cx="1800" cy="532" r="78" fill="#7FBF6B"/>
+    </g>
+    <!-- гриб -->
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1" begin="13.4s" dur="0.25s" fill="freeze"/>
+      <rect x="1652" y="900" width="14" height="22" rx="6" fill="#EFE9DC"/>
+      <path d="M1636,902 q23,-30 46,0 Z" fill="#B5442C"/>
+    </g>
+    <!-- велосипед у стены -->
+    <g opacity="0" transform="translate(0,0)">
+      <animate attributeName="opacity" values="0;1" begin="13.5s" dur="0.3s" fill="freeze"/>
+      <g fill="none" stroke="#3A3F44" stroke-width="5">
+        <circle cx="878" cy="900" r="29"/><circle cx="962" cy="900" r="29"/>
+      </g>
+      <path d="M878,900 L905,858 L946,858 L962,900 M905,858 L920,900 L878,900 M900,852 h-14 M946,858 l-4,-12 h12" fill="none" stroke="#A03A30" stroke-width="5" stroke-linecap="round"/>
+      <path d="M938,846 h16" stroke="#3A3F44" stroke-width="6" stroke-linecap="round"/>
+    </g>
+    <!-- корзина с яблоками -->
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1" begin="13.6s" dur="0.25s" fill="freeze"/>
+      <circle cx="805" cy="898" r="7" fill="#C94F3D"/><circle cx="820" cy="894" r="7" fill="#D9A73E"/><circle cx="834" cy="899" r="7" fill="#C94F3D"/>
+      <path d="M790,900 h60 l-8,26 q-22,8 -44,0 Z" fill="#A87B48"/>
+      <path d="M793,908 h54 M796,918 h48" stroke="#8A5F33" stroke-width="3"/>
+    </g>
+  </g>
+
+  <!-- ЮРА ВО ДВОРЕ (лицом вправо) -->
+  <g id="yardYura" transform="translate(1072,930)" opacity="0">
+    <animate attributeName="opacity" values="0;1" begin="13.3s" dur="0.3s" fill="freeze"/>
+    <animate attributeName="opacity" values="1;0" begin="18.75s" dur="0.3s" fill="freeze"/>
+    <!-- ноги: прямые, брюки широкие -->
+    <rect x="-36" y="-96" width="72" height="30" rx="9" fill="#5E7A45"/>
+    <rect x="-36" y="-90" width="32" height="80" rx="9" fill="#5E7A45"/>
+    <rect x="4" y="-90" width="32" height="80" rx="9" fill="#66854C"/>
+    <rect x="-40" y="-14" width="38" height="14" rx="5" fill="#4A342A"/>
+    <rect x="2" y="-14" width="38" height="14" rx="5" fill="#54413A"/>
+    <!-- верх корпуса наклоняется, когда Юра смотрит клеща -->
+    <g id="yardYuraUpper">
+      <animateTransform attributeName="transform" type="rotate" values="0 0 -96;26 0 -96" begin="16.6s" dur="0.4s" calcMode="spline" keySplines="0.35 0 0.55 1" fill="freeze"/>
+      <animateTransform attributeName="transform" type="rotate" values="26 0 -96;0 0 -96" begin="17.55s" dur="0.35s" calcMode="spline" keySplines="0.35 0 0.55 1" fill="freeze"/>
+      <!-- дальняя рука -->
+      <rect x="-27" y="-160" width="14" height="62" rx="7" fill="#D8C87F"/>
+      <circle cx="-20" cy="-96" r="8" fill="#F0C29A"/>
+      <rect x="-30" y="-172" width="60" height="82" rx="11" fill="url(#plaid)"/>
+      <path d="M-30,-172 h18 v82 h-18 Z M12,-172 h18 v82 h-18 Z" fill="#59653C"/>
+      <circle cx="6" cy="-196" r="26" fill="#F0C29A"/>
+      <path d="M6,-222 a26,26 0 0 1 24,16 l-6,3 q-8,-10 -18,-10 l-14,-2 a26,26 0 0 1 -12,10 l-6,-3 a26,26 0 0 1 32,-14 Z" fill="#C9C9C6"/>
+      <path d="M32,-196 l10,4 -10,5 Z" fill="#E8B489"/>
+      <circle cx="18" cy="-200" r="3" fill="#26241F"/>
+      <path d="M12,-184 q7,5 14,-1" stroke="#26241F" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <!-- ближняя (правая) рука: подаёт гвоздь, потом машет вслед -->
+      <g>
+        <animateTransform attributeName="transform" type="rotate" values="0 20 -158;-85 20 -158" begin="15.35s" dur="0.35s" calcMode="spline" keySplines="0.35 0 0.5 1" fill="freeze"/>
+        <animateTransform attributeName="transform" type="rotate" values="-85 20 -158;0 20 -158" begin="16.05s" dur="0.3s" fill="freeze"/>
+        <animateTransform attributeName="transform" type="rotate" values="0 20 -158;-160 20 -158" begin="17.75s" dur="0.3s" fill="freeze"/>
+        <animateTransform attributeName="transform" type="rotate" values="-160 20 -158;-185 20 -158;-150 20 -158;-185 20 -158;-160 20 -158" begin="18.05s" dur="0.7s" fill="freeze"/>
+        <rect x="13" y="-160" width="14" height="62" rx="7" fill="#EAD98F"/>
+        <circle cx="20" cy="-96" r="8.5" fill="#F0C29A"/>
+      </g>
+    </g>
+  </g>
+  <!-- гвоздь -->
+  <rect x="1146" y="-4" width="26" height="6" rx="3" fill="#8E959B" transform="translate(0,778)" opacity="0">
+    <animate attributeName="opacity" values="0;1" begin="15.6s" dur="0.1s" fill="freeze"/>
+    <animate attributeName="opacity" values="1;0" begin="16.15s" dur="0.15s" fill="freeze"/>
+  </rect>
+
+  <!-- СОСЕД С СОБАКОЙ -->
+  <g id="visitors" transform="translate(2140,930)">
+    <animateTransform attributeName="transform" type="translate" values="0 0;-810 0" begin="13.5s" dur="1.25s"
+      calcMode="spline" keySplines="0.25 0 0.55 1" additive="sum" fill="freeze"/>
+    <animateTransform attributeName="transform" type="translate" values="0 0;950 0" begin="17.65s" dur="1.1s"
+      calcMode="spline" keySplines="0.4 0 0.7 1" additive="sum" fill="freeze"/>
+    <!-- сосед (лицом влево; на уходе разворачивается) -->
+    <g id="neighbor">
+      <animateTransform attributeName="transform" type="scale" values="1 1;-1 1" begin="17.65s" dur="0.01s" additive="sum" fill="freeze"/>
+      <g>
+        <animateTransform attributeName="transform" type="rotate" values="-12 -6 -80;12 -6 -80;-12 -6 -80" begin="13.5s" dur="0.32s" repeatCount="4" fill="remove"/>
+        <animateTransform attributeName="transform" type="rotate" values="-12 -6 -80;12 -6 -80;-12 -6 -80" begin="17.65s" dur="0.33s" repeatCount="3" fill="remove"/>
+        <rect x="-20" y="-84" width="26" height="74" rx="8" fill="#4E4A40"/>
+        <rect x="-26" y="-13" width="34" height="13" rx="5" fill="#33302A"/>
+      </g>
+      <g>
+        <animateTransform attributeName="transform" type="rotate" values="12 6 -80;-12 6 -80;12 6 -80" begin="13.5s" dur="0.32s" repeatCount="4" fill="remove"/>
+        <animateTransform attributeName="transform" type="rotate" values="12 6 -80;-12 6 -80;12 6 -80" begin="17.65s" dur="0.33s" repeatCount="3" fill="remove"/>
+        <rect x="-4" y="-84" width="26" height="74" rx="8" fill="#57534A"/>
+        <rect x="-8" y="-13" width="34" height="13" rx="5" fill="#3D3933"/>
+      </g>
+      <rect x="-22" y="-92" width="46" height="20" rx="7" fill="#4E4A40"/>
+      <!-- куртка -->
+      <rect x="-30" y="-158" width="58" height="74" rx="11" fill="#8D8565"/>
+      <path d="M-1,-152 v62" stroke="#736C50" stroke-width="4"/>
+      <circle cx="-8" cy="-128" r="2.6" fill="#5E583F"/><circle cx="-8" cy="-108" r="2.6" fill="#5E583F"/>
+      <!-- ближняя (левая) рука: принимает гвоздь -->
+      <g>
+        <animateTransform attributeName="transform" type="rotate" values="0 -14 -146;70 -14 -146" begin="15.55s" dur="0.3s" fill="freeze"/>
+        <animateTransform attributeName="transform" type="rotate" values="70 -14 -146;0 -14 -146" begin="16.2s" dur="0.3s" fill="freeze"/>
+        <rect x="-21" y="-148" width="13" height="56" rx="6.5" fill="#7E7757"/>
+        <circle cx="-14" cy="-90" r="7.5" fill="#E8BE95"/>
+      </g>
+      <!-- голова: кепка + седая борода -->
+      <circle cx="-4" cy="-182" r="24" fill="#E8BE95"/>
+      <path d="M-4,-196 q-16,26 4,34 q-20,4 -26,-12 q-4,-14 8,-22 Z" fill="#BFBDB8"/>
+      <path d="M-28,-188 a24,24 0 0 1 46,-8 l-50,2 Z" fill="#6B4A2E"/>
+      <rect x="-42" y="-196" width="26" height="9" rx="4.5" fill="#59391F"/>
+      <circle cx="-14" cy="-184" r="2.8" fill="#26241F"/>
+    </g>
+    <!-- пёс (белый, пушистый, лицом влево) -->
+    <g id="dog" transform="translate(-128,0)">
+      <animateTransform attributeName="transform" type="scale" values="1 1;-1 1" begin="17.65s" dur="0.01s" additive="sum" fill="freeze"/>
+      <!-- хвост -->
+      <g>
+        <animateTransform attributeName="transform" type="rotate" values="-14 52 -68;16 52 -68;-14 52 -68" begin="13.5s" dur="0.7s" repeatCount="indefinite"/>
+        <path d="M52,-68 q26,-26 16,-52 q22,16 10,44 q-8,18 -26,8 Z" fill="#F4F4F2"/>
+      </g>
+      <!-- лапы: прямые -->
+      <g>
+        <animateTransform attributeName="transform" type="rotate" values="-10 -34 -34;10 -34 -34;-10 -34 -34" begin="13.5s" dur="0.3s" repeatCount="5" fill="remove"/>
+        <animateTransform attributeName="transform" type="rotate" values="-12 -34 -34;12 -34 -34;-12 -34 -34" begin="17.65s" dur="0.26s" repeatCount="4" fill="remove"/>
+        <rect x="-40" y="-36" width="11" height="36" rx="5" fill="#EDEDEA"/>
+      </g>
+      <g>
+        <animateTransform attributeName="transform" type="rotate" values="10 -16 -34;-10 -16 -34;10 -16 -34" begin="13.5s" dur="0.3s" repeatCount="5" fill="remove"/>
+        <animateTransform attributeName="transform" type="rotate" values="12 -16 -34;-12 -16 -34;12 -16 -34" begin="17.65s" dur="0.26s" repeatCount="4" fill="remove"/>
+        <rect x="-22" y="-36" width="11" height="36" rx="5" fill="#F4F4F2"/>
+      </g>
+      <g>
+        <animateTransform attributeName="transform" type="rotate" values="10 30 -34;-10 30 -34;10 30 -34" begin="13.5s" dur="0.3s" repeatCount="5" fill="remove"/>
+        <animateTransform attributeName="transform" type="rotate" values="12 30 -34;-12 30 -34;12 30 -34" begin="17.65s" dur="0.26s" repeatCount="4" fill="remove"/>
+        <rect x="24" y="-36" width="11" height="36" rx="5" fill="#EDEDEA"/>
+      </g>
+      <g>
+        <animateTransform attributeName="transform" type="rotate" values="-10 46 -34;10 46 -34;-10 46 -34" begin="13.5s" dur="0.3s" repeatCount="5" fill="remove"/>
+        <animateTransform attributeName="transform" type="rotate" values="-12 46 -34;12 46 -34;-12 46 -34" begin="17.65s" dur="0.26s" repeatCount="4" fill="remove"/>
+        <rect x="40" y="-36" width="11" height="36" rx="5" fill="#F4F4F2"/>
+      </g>
+      <!-- туловище -->
+      <ellipse cx="4" cy="-58" rx="56" ry="30" fill="#F4F4F2"/>
+      <ellipse cx="-30" cy="-62" rx="26" ry="24" fill="#FBFBFA"/>
+      <!-- голова -->
+      <circle cx="-58" cy="-88" r="24" fill="#F4F4F2"/>
+      <path d="M-72,-106 l-6,-16 14,8 Z" fill="#E4E4E0"/>
+      <path d="M-52,-110 l2,-17 10,13 Z" fill="#E4E4E0"/>
+      <ellipse cx="-76" cy="-82" rx="13" ry="9" fill="#FBFBFA"/>
+      <circle cx="-86" cy="-84" r="4.5" fill="#2A2A28"/>
+      <circle cx="-62" cy="-92" r="3.5" fill="#4A78B5"/>
+      <path d="M-74,-74 q2,10 8,10 l0,-8" fill="#E88A94"/>
+      <!-- клещ на боку -->
+      <circle id="tick" cx="18" cy="-72" r="4.5" fill="#4A3A2A">
+        <animateMotion path="M0,0 q30,-60 74,-40" begin="17.15s" dur="0.5s" fill="freeze"/>
+        <animate attributeName="opacity" values="1;1;0" keyTimes="0;0.7;1" begin="17.15s" dur="0.5s" fill="freeze"/>
+      </circle>
+    </g>
+  </g>
+
+  <!-- реплики -->
+  <g id="bubble1" opacity="0">
+    <animate attributeName="opacity" values="0;1" begin="14.9s" dur="0.2s" fill="freeze"/>
+    <animate attributeName="opacity" values="1;0" begin="16.0s" dur="0.2s" fill="freeze"/>
+    <path d="M1310,668 l-14,36 l38,-32 Z" fill="#FFFFFF" stroke="#3A3F44" stroke-width="4"/>
+    <rect x="1010" y="600" width="470" height="70" rx="16" fill="#FFFFFF" stroke="#3A3F44" stroke-width="4"/>
+    <text x="1245" y="645" text-anchor="middle" font-size="31" font-weight="bold" fill="#C0392B">Юр, гвоздя не найдётся?</text>
+  </g>
+  <g id="bubble2" opacity="0">
+    <animate attributeName="opacity" values="0;1" begin="16.35s" dur="0.2s" fill="freeze"/>
+    <animate attributeName="opacity" values="1;0" begin="17.5s" dur="0.2s" fill="freeze"/>
+    <path d="M1310,668 l-14,36 l38,-32 Z" fill="#FFFFFF" stroke="#3A3F44" stroke-width="4"/>
+    <rect x="1010" y="600" width="470" height="70" rx="16" fill="#FFFFFF" stroke="#3A3F44" stroke-width="4"/>
+    <text x="1245" y="645" text-anchor="middle" font-size="31" font-weight="bold" fill="#C0392B">А у меня клеща посмотри</text>
+  </g>
+
+  <!-- солнце -->
+  <g id="sun" transform="translate(1720,150)" opacity="0">
+    <animate attributeName="opacity" values="0;1" begin="18.4s" dur="0.4s" fill="freeze"/>
+    <animateTransform attributeName="transform" type="scale" values="0.3;1.1;1" begin="18.4s" dur="0.55s"
+      calcMode="spline" keySplines="0.3 1.3 0.6 1;0.3 0 0.6 1" additive="sum" fill="freeze"/>
+    <g stroke="#F7C64B" stroke-width="9" stroke-linecap="round">
+      <animateTransform attributeName="transform" type="rotate" from="0" to="45" dur="26s" repeatCount="indefinite"/>
+      <path d="M0,-72 V-96 M0,72 V96 M-72,0 H-96 M72,0 H96 M-51,-51 L-68,-68 M51,51 L68,68 M-51,51 L-68,68 M51,-51 L68,-68"/>
+    </g>
+    <circle r="56" fill="#F7C64B"/>
+    <circle r="46" fill="#F9D46E"/>
+  </g>
+
+  <!-- ФИНАЛ: Юра на самом коньке крыши, на одном колене -->
+  <g id="kneelYura" transform="translate(740,330)" opacity="0">
+    <animate attributeName="opacity" values="0;1" begin="18.95s" dur="0.35s" fill="freeze"/>
+    <animateTransform attributeName="transform" type="translate" values="0 -10;0 0" begin="18.95s" dur="0.35s" calcMode="spline" keySplines="0.3 0 0.5 1" additive="sum" fill="freeze"/>
+    <g>
+      <!-- лёгкое «дыхание» -->
+      <animateTransform attributeName="transform" type="translate" values="0 0;0 -3;0 0;0 -3;0 0" begin="19.5s" dur="3s" fill="freeze"/>
+      <!-- профиль, смотрит вправо; посадка низкая — на одном колене -->
+      <!-- задняя нога: голень лежит на коньке, носок позади -->
+      <rect x="-56" y="-14" width="16" height="14" rx="5" fill="#4A342A"/>
+      <rect x="-50" y="-18" width="38" height="18" rx="8" fill="#55703E"/>
+      <!-- заднее бедро: от колена на коньке вперёд-вверх к тазу -->
+      <rect x="-22" y="-66" width="28" height="62" rx="10" fill="#55703E" transform="rotate(18 -8 -12)"/>
+      <!-- переднее бедро: от таза вперёд-вниз к поднятому колену -->
+      <rect x="0" y="-72" width="24" height="44" rx="9" fill="#66854C" transform="rotate(-46 12 -70)"/>
+      <!-- передняя голень и стопа на коньке -->
+      <rect x="24" y="-46" width="24" height="38" rx="9" fill="#66854C"/>
+      <rect x="16" y="-13" width="36" height="13" rx="5" fill="#54413A"/>
+      <!-- таз: широкие брюки -->
+      <rect x="-20" y="-84" width="46" height="26" rx="9" fill="#5E7A45"/>
+      <!-- дальняя рука: опущена, ладонь на бедре -->
+      <rect x="-16" y="-128" width="13" height="52" rx="6.5" fill="#D8C87F"/>
+      <circle cx="-9" cy="-74" r="7" fill="#F0C29A"/>
+      <!-- торс -->
+      <rect x="-24" y="-134" width="52" height="62" rx="11" fill="url(#plaid)"/>
+      <path d="M-24,-134 h15 v62 h-15 Z M13,-134 h15 v62 h-15 Z" fill="#59653C"/>
+      <!-- ближняя рука: ладонь на поднятом колене -->
+      <rect x="10" y="-126" width="13" height="56" rx="6.5" fill="#EAD98F" transform="rotate(-18 16 -122)"/>
+      <circle cx="34" cy="-56" r="8" fill="#F0C29A"/>
+      <!-- голова, смотрит вдаль вправо -->
+      <circle cx="4" cy="-158" r="24" fill="#F0C29A"/>
+      <path d="M4,-182 a24,24 0 0 1 22,14 l-6,3 q-7,-9 -16,-9 l-13,-2 a24,24 0 0 1 -11,9 l-5,-3 a24,24 0 0 1 29,-12 Z" fill="#C9C9C6"/>
+      <path d="M28,-158 l10,4 -10,5 Z" fill="#E8B489"/>
+      <circle cx="14" cy="-162" r="2.9" fill="#26241F"/>
+      <path d="M8,-146 q6,5 13,-1" stroke="#26241F" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <!-- мягкое завершение -->
+  <rect width="1920" height="1080" fill="#FFF9EC" opacity="0" pointer-events="none">
+    <animate attributeName="opacity" values="0;0.55" begin="21.6s" dur="1.4s" fill="freeze"/>
+  </rect>
+</g>
+</svg>
+<script>
+  const svg = document.getElementById('film');
+  const p = new URLSearchParams(location.search);
+  if (p.has('t')) {
+    const t = parseFloat(p.get('t')) || 0;
+    svg.pauseAnimations();
+    svg.setCurrentTime(t);
+  }
+  document.getElementById('replay').addEventListener('click', () => {
+    svg.unpauseAnimations();
+    svg.setCurrentTime(0);
+  });
+</script>
+</body>
+</html>
