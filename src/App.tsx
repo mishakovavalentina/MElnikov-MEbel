@@ -8,6 +8,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import CabinetLayout from "@/components/cabinet/CabinetLayout";
 import Index from "./pages/Index.tsx";
 import DesignSystem from "./pages/DesignSystem.tsx";
+import Intro from "./pages/Intro.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Login from "./pages/Login.tsx";
 import CabinetRequests from "./pages/CabinetRequests.tsx";
@@ -27,6 +28,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/design-system" element={<DesignSystem />} />
+            <Route path="/intro" element={<Intro />} />
             <Route path="/login" element={<Login />} />
             <Route
               path="/cabinet"
