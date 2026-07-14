@@ -370,26 +370,6 @@ const CartoonIntro = () => {
           </motion.g>
         </motion.g>
 
-        {/* «!» — Юра заметил медведей */}
-        <motion.g
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: [0, 0, 1, 1, 0, 0], scale: [0, 0, 1.1, 1, 0.6, 0] }}
-          transition={{ ...once, times: [0, 0.47, 0.5, 0.58, 0.62, 1] }}
-          style={{ transformBox: "fill-box", transformOrigin: "center" }}
-        >
-          <circle cx={632} cy={392} r={17} fill="#FFFFFF" stroke="#E53935" strokeWidth={3} />
-          <text
-            x={632}
-            y={404}
-            textAnchor="middle"
-            fontSize={26}
-            fontWeight={800}
-            fill="#E53935"
-            fontFamily="'Inter', sans-serif"
-          >
-            !
-          </text>
-        </motion.g>
       </svg>
     </div>
   );
