@@ -33,7 +33,7 @@ const HeroSection = () => {
             <div className="flex flex-wrap gap-4 pt-2">
               <button
                 onClick={() => scrollTo("#contact-form")}
-                className="bg-primary text-primary-foreground px-7 py-3.5 rounded-md font-medium transition-all duration-200 hover:opacity-90 hover:shadow-lg active:scale-95"
+                className="bg-chocolate text-chocolate-foreground px-7 py-3.5 rounded-md font-medium transition-all duration-200 hover:bg-chocolate/90 hover:shadow-lg active:scale-95"
               >
                 Заказать замер
               </button>

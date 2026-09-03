@@ -42,7 +42,7 @@ const Header = () => {
           ))}
           <button
             onClick={() => scrollTo("#contact-form")}
-            className="bg-primary text-primary-foreground px-5 py-2.5 rounded-md text-sm font-medium transition-all duration-200 hover:opacity-90 hover:shadow-lg active:scale-95"
+            className="bg-chocolate text-chocolate-foreground px-5 py-2.5 rounded-md text-sm font-medium transition-all duration-200 hover:bg-chocolate/90 hover:shadow-lg active:scale-95"
           >
             Заказать замер
           </button>
@@ -93,7 +93,7 @@ const Header = () => {
               ))}
               <button
                 onClick={() => scrollTo("#contact-form")}
-                className="bg-primary text-primary-foreground px-5 py-3 rounded-md text-sm font-medium mt-2"
+                className="bg-chocolate text-chocolate-foreground px-5 py-3 rounded-md text-sm font-medium mt-2"
               >
                 Заказать замер
               </button>

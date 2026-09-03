@@ -15,6 +15,8 @@
 |---|---|---|
 | `primary` | `hsl(30 44% 60%)` | акцент бренда: кнопки, иконки, «МЕ» в логотипе |
 | `primary-foreground` | `hsl(0 0% 100%)` | текст на primary-кнопках |
+| `chocolate` | `hsl(25 47% 20%)` | тёмно-коричневый CTA «Заказать замер» (Header, Hero) |
+| `chocolate-foreground` | `hsl(0 0% 100%)` | текст на chocolate-кнопках |
 | `secondary` / `accent` | `hsl(34 30% 74%)` | вторичный бежевый тон, hover-фоны |
 | `background` | `hsl(0 0% 97%)` | фон страницы |
 | `foreground` | `hsl(0 0% 17%)` | основной текст |

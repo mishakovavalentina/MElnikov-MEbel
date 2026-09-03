@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 const tokens = [
   { name: "primary", value: "hsl(30 44% 60%)", usage: "акцент бренда: кнопки, иконки, «МЕ» в логотипе", className: "bg-primary" },
   { name: "primary-foreground", value: "hsl(0 0% 100%)", usage: "текст на primary-кнопках", className: "bg-[hsl(0_0%_100%)] border border-border" },
+  { name: "chocolate", value: "hsl(25 47% 20%)", usage: "тёмно-коричневый CTA «Заказать замер»", className: "bg-chocolate" },
   { name: "secondary / accent", value: "hsl(34 30% 74%)", usage: "вторичный тон (бежевый), hover-фоны", className: "bg-secondary" },
   { name: "background", value: "hsl(0 0% 97%)", usage: "фон страницы", className: "bg-background border border-border" },
   { name: "foreground", value: "hsl(0 0% 17%)", usage: "основной текст", className: "bg-foreground" },
@@ -192,7 +193,7 @@ const DesignSystem = () => (
 
         <SubTitle>Кнопки лендинга (Hero, FinalSection, форма) — эталон внешнего вида</SubTitle>
         <div className="flex flex-wrap items-center gap-4">
-          <button className="bg-primary text-primary-foreground px-7 py-3.5 rounded-md font-medium transition-all duration-200 hover:opacity-90 hover:shadow-lg active:scale-95">
+          <button className="bg-chocolate text-chocolate-foreground px-7 py-3.5 rounded-md font-medium transition-all duration-200 hover:bg-chocolate/90 hover:shadow-lg active:scale-95">
             Заказать замер
           </button>
           <button className="border border-foreground/15 text-foreground px-7 py-3.5 rounded-md font-medium transition-all duration-200 hover:bg-foreground/5">
