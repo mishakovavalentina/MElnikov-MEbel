@@ -8,7 +8,7 @@ const Privacy = () => (
 
     <h2>1. Кто обрабатывает данные</h2>
     <p>
-      Оператор персональных данных — {OPERATOR.name}, ИНН {OPERATOR.inn}, адрес: {OPERATOR.address} (далее — «мы»).
+      Оператор персональных данных — {OPERATOR.name}, ИНН {OPERATOR.inn} (далее — «мы»).
       Связаться с нами по вопросам обработки данных можно по почте{" "}
       <a href={`mailto:${OPERATOR.email}`}>{OPERATOR.email}</a> или по телефону {OPERATOR.phone}.
     </p>
