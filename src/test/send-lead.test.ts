@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-// @ts-expect-error — серверная функция написана на JS без типов
 import handler, { buildMessage, normalizePhone } from "../../netlify/functions/send-lead.mjs";
 import { isValidPhone } from "@/lib/phone";
 
