@@ -9,6 +9,8 @@ import CabinetLayout from "@/components/cabinet/CabinetLayout";
 import Index from "./pages/Index.tsx";
 import DesignSystem from "./pages/DesignSystem.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import Privacy from "./pages/Privacy.tsx";
+import Consent from "./pages/Consent.tsx";
 import Login from "./pages/Login.tsx";
 import CabinetRequests from "./pages/CabinetRequests.tsx";
 import CabinetChat from "./pages/CabinetChat.tsx";
@@ -27,6 +29,8 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/design-system" element={<DesignSystem />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/consent" element={<Consent />} />
             <Route path="/login" element={<Login />} />
             <Route
               path="/cabinet"
