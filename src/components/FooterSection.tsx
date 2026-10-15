@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 const FooterSection = () => (
   <footer className="py-8 border-t border-foreground/[0.06]">
     <div className="container mx-auto px-4 lg:px-8 text-center">
@@ -6,6 +8,10 @@ const FooterSection = () => (
         <span className="text-me-accent">МЕ</span>бель
       </p>
       <p className="text-muted-foreground text-xs mt-1">© {new Date().getFullYear()} Все права защищены</p>
+      <p className="text-muted-foreground text-xs mt-2 space-x-4">
+        <Link to="/privacy" className="underline hover:text-foreground">Политика конфиденциальности</Link>
+        <Link to="/consent" className="underline hover:text-foreground">Согласие на обработку данных</Link>
+      </p>
     </div>
   </footer>
 );

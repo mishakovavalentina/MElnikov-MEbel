@@ -120,10 +120,12 @@
 
 ## 5. Environment
 
-Переменные окружения, найденные в коде:
+Переменные окружения Netlify (Site configuration → Environment variables), только для серверной функции, в браузер не попадают:
 
-- `VITE_TELEGRAM_BOT_TOKEN` — токен Telegram-бота (используется в `ContactFormSection.tsx`)
-- `VITE_TELEGRAM_CHAT_ID` — ID чата Telegram (используется в `ContactFormSection.tsx`)
+- `TELEGRAM_LEAD_BOT_TOKEN` — токен бота заявок (используется в `netlify/functions/send-lead.mjs`)
+- `TELEGRAM_LEAD_CHAT_ID` — ID чата, куда приходят заявки
+
+Переменные с префиксом `VITE_` попадают в код сайта, который видит любой посетитель. Секреты в них не класть.
 
 Секреты GitHub Actions (только CI, в клиентский код не попадают):
 
@@ -134,8 +136,10 @@
 
 - Это одностраничный сайт (SPA) с единственным маршрутом `/` и страницей 404
 - Главная страница (`Index.tsx`) собирает секции в определённом порядке: Header → Hero → Directions → WhyUs → PortfolioFurniture → PortfolioTextile → SunProtection → Process → ContactForm → Contacts → Final → Footer
-- Форма обратной связи отправляет данные в Telegram через Bot API (используя переменные окружения `VITE_TELEGRAM_BOT_TOKEN` и `VITE_TELEGRAM_CHAT_ID`)
-- В `index.html` также есть скрытая форма Netlify Forms (поля: name, phone, comment)
+- Форма заявки отправляет данные в серверную функцию `/.netlify/functions/send-lead` (`netlify/functions/send-lead.mjs`), а она пересылает их в Telegram. Без галочки согласия на обработку ПДн заявка не отправляется
+- Тестовые заявки всегда отправлять с именем «ТЕСТ» — бот помечает их как тестовые
+- Страницы `/privacy` (политика) и `/consent` (согласие на ПДн); реквизиты оператора — в `src/lib/legal.ts`
+- В `index.html` также есть скрытая форма Netlify Forms (поля: name, phone, comment, consent)
 - Язык сайта — русский (`<html lang="ru">`)
 - Проект создан на платформе Lovable (lovable-tagger используется как dev-зависимость)
 - Изображения хранятся локально в `src/assets/` (фото мебели, штор, жалюзи)
